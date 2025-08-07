@@ -16,6 +16,64 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Setup mode variables
+DEV_MODE=false
+FULL_MODE=false
+
+# Parse command line arguments
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --dev)
+                DEV_MODE=true
+                shift
+                ;;
+            --f|--full)
+                FULL_MODE=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+        esac
+    done
+    
+    # Default to full mode if no flags specified
+    if [ "$DEV_MODE" = false ] && [ "$FULL_MODE" = false ]; then
+        FULL_MODE=true
+    fi
+    
+    # Show selected mode
+    if [ "$DEV_MODE" = true ]; then
+        print_status "Running in DEV mode (database only)"
+    else
+        print_status "Running in FULL mode (all services + seeding)"
+    fi
+}
+
+# Show help information
+show_help() {
+    echo -e "${PURPLE}Vision-TF Development Setup Script${NC}"
+    echo
+    echo "Usage: $0 [OPTIONS]"
+    echo
+    echo "Options:"
+    echo "  --dev     Development mode: Start database only, skip seeding"
+    echo "  --f, --full Full mode: Start all services and run seeding (default)"
+    echo "  -h, --help Show this help message"
+    echo
+    echo "Examples:"
+    echo "  $0 --dev     # Start only database for local development"
+    echo "  $0 --f       # Full setup with all services and seeding"
+    echo "  $0           # Same as --f (full setup)"
+}
+
 # Function to print colored output
 print_header() {
     echo -e "${PURPLE}================================${NC}"
@@ -60,6 +118,11 @@ detect_os() {
 # Check if Docker is installed and running
 check_docker() {
     print_step "Checking Docker installation..."
+    
+    # Set Docker host for Linux systems
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        export DOCKER_HOST=unix:///var/run/docker.sock
+    fi
     
     if ! command -v docker &> /dev/null; then
         print_error "Docker is not installed. Please install Docker Desktop first."
@@ -106,11 +169,17 @@ check_env_file() {
     fi
 }
 
-# Start containers
+# Start containers based on mode
 start_containers() {
     print_step "Starting Docker containers..."
     
-    docker-compose up -d
+    if [ "$DEV_MODE" = true ]; then
+        print_status "Starting database only..."
+        docker-compose up -d postgres
+    else
+        print_status "Starting all services..."
+        docker-compose up -d
+    fi
     
     print_success "Containers started successfully"
 }
@@ -121,59 +190,100 @@ wait_for_services() {
     
     # Wait for database
     print_status "Waiting for database..."
-    until docker exec vision-tf-backend npx prisma db execute --stdin <<< "SELECT 1;" > /dev/null 2>&1; do
-        print_warning "Database not ready, retrying in 5 seconds..."
-        sleep 5
-    done
+    if [ "$DEV_MODE" = true ]; then
+        # In dev mode, wait for database directly
+        until docker exec vision-tf-db pg_isready -U vision_user -d vision_tf > /dev/null 2>&1; do
+            print_warning "Database not ready, retrying in 5 seconds..."
+            sleep 5
+        done
+    else
+        # In full mode, wait for database directly (more reliable)
+        until docker exec vision-tf-db pg_isready -U vision_user -d vision_tf > /dev/null 2>&1; do
+            print_warning "Database not ready, retrying in 5 seconds..."
+            sleep 5
+        done
+    fi
     print_success "Database is ready"
     
-    # Wait for API
-    print_status "Waiting for API..."
-    until curl -f http://localhost:3000/v1/health > /dev/null 2>&1; do
-        print_warning "API not ready, retrying in 5 seconds..."
-        sleep 5
-    done
-    print_success "API is ready"
+    # Wait for API only in full mode
+    if [ "$FULL_MODE" = true ]; then
+        print_status "Waiting for API..."
+        until curl -f http://localhost:3000/v1/health > /dev/null 2>&1; do
+            print_warning "API not ready, retrying in 5 seconds..."
+            sleep 5
+        done
+        print_success "API is ready"
+    fi
 }
 
 # Run database setup
 run_database_setup() {
-    print_step "Running database setup..."
-    
-    docker exec vision-tf-backend ./scripts/setup-db.sh
-    
-    print_success "Database setup completed"
+    if [ "$DEV_MODE" = true ]; then
+        print_step "Running database setup (migrations only)..."
+        
+        # Run migrations directly on host
+        npx prisma migrate deploy
+        npx prisma generate
+        
+        print_success "Database setup completed (migrations only)"
+        print_warning "Skipping seeding in dev mode"
+    else
+        print_step "Running database setup..."
+        
+        docker exec vision-tf-backend ./scripts/setup-db.sh
+        
+        print_success "Database setup completed"
+    fi
 }
 
-# Show final status
+# Show final status based on mode
 show_final_status() {
-    print_header "🎉 Setup Complete!"
-    
-    echo -e "${GREEN}✅ Vision-TF Backend is now running!${NC}"
-    echo
-    echo -e "${CYAN}📋 Service URLs:${NC}"
-    echo -e "   Backend API: ${BLUE}http://localhost:3000${NC}"
-    echo -e "   API Documentation: ${BLUE}http://localhost:3000/api${NC}"
-    echo -e "   Health Check: ${BLUE}http://localhost:3000/v1/health${NC}"
-    echo -e "   RabbitMQ Management: ${BLUE}http://localhost:15672${NC}"
-    echo
-    echo -e "${CYAN}🔑 Test Users (if seeded):${NC}"
-    echo -e "   Admin: ${BLUE}admin@vision-tf.com${NC}"
-    echo -e "   Developer: ${BLUE}developer@vision-tf.com${NC}"
-    echo -e "   Client: ${BLUE}client@vision-tf.com${NC}"
-    echo
-    echo -e "${CYAN}🛠️  Useful Commands:${NC}"
-    echo -e "   View logs: ${BLUE}./scripts/dev-logs.sh${NC}"
-    echo -e "   Stop services: ${BLUE}./scripts/dev-stop.sh${NC}"
-    echo -e "   Reset everything: ${BLUE}./scripts/dev-reset.sh${NC}"
-    echo
-    echo -e "${YELLOW}💡 Tip: Check the README.md for more information${NC}"
+    if [ "$DEV_MODE" = true ]; then
+        print_header "🎉 Dev Setup Complete!"
+        
+        echo -e "${GREEN}✅ Database is now running!${NC}"
+        echo
+        echo -e "${CYAN}📋 Service URLs:${NC}"
+        echo -e "   Database: ${BLUE}localhost:5432${NC}"
+        echo -e "   Database Name: ${BLUE}vision_tf${NC}"
+        echo -e "   Database User: ${BLUE}vision_user${NC}"
+        echo
+        echo -e "${CYAN}🛠️  Next Steps:${NC}"
+        echo -e "   Start backend locally: ${BLUE}npm run start:dev${NC}"
+        echo -e "   View database logs: ${BLUE}docker logs vision-tf-db${NC}"
+        echo -e "   Stop database: ${BLUE}docker-compose stop postgres${NC}"
+        echo
+        echo -e "${YELLOW}💡 Tip: You can now run the backend locally with hot reload${NC}"
+    else
+        print_header "🎉 Full Setup Complete!"
+        
+        echo -e "${GREEN}✅ Vision-TF Backend is now running!${NC}"
+        echo
+        echo -e "${CYAN}📋 Service URLs:${NC}"
+        echo -e "   Backend API: ${BLUE}http://localhost:3000${NC}"
+        echo -e "   API Documentation: ${BLUE}http://localhost:3000/api${NC}"
+        echo -e "   Health Check: ${BLUE}http://localhost:3000/v1/health${NC}"
+        echo -e "   RabbitMQ Management: ${BLUE}http://localhost:15672${NC}"
+        echo
+        echo -e "${CYAN}🔑 Test Users (if seeded):${NC}"
+        echo -e "   Admin: ${BLUE}admin@vision-tf.com${NC}"
+        echo -e "   Developer: ${BLUE}developer@vision-tf.com${NC}"
+        echo -e "   Client: ${BLUE}client@vision-tf.com${NC}"
+        echo
+        echo -e "${CYAN}🛠️  Useful Commands:${NC}"
+        echo -e "   View logs: ${BLUE}./scripts/dev-logs.sh${NC}"
+        echo -e "   Stop services: ${BLUE}./scripts/dev-stop.sh${NC}"
+        echo -e "   Reset everything: ${BLUE}./scripts/dev-reset.sh${NC}"
+        echo
+        echo -e "${YELLOW}💡 Tip: Check the README.md for more information${NC}"
+    fi
 }
 
 # Main execution
 main() {
     print_header "Vision-TF Development Setup"
     
+    parse_arguments "$@"
     detect_os
     check_docker
     check_env_file

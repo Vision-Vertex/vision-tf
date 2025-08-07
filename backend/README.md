@@ -6,15 +6,14 @@ Enterprise-grade authentication and security system for Vision-TF platform.
 
 ### Prerequisites
 - Node.js 18+
-- Docker Desktop (Windows/Mac) or Docker (Linux)
+- Docker (Linux) or Docker Desktop (Windows/Mac)
 - Git
 
-## Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Docker Desktop (Windows/Mac) or Docker (Linux)
-- Git
+**Note for Linux users:** If you encounter Docker connection issues, run:
+```bash
+export DOCKER_HOST=unix:///var/run/docker.sock
+```
+Or add it to your `~/.bashrc` for permanent fix.
 
 ### First Time Setup
 
@@ -31,23 +30,55 @@ Enterprise-grade authentication and security system for Vision-TF platform.
 3. **Edit `.env` file** with your configuration values
 
 4. **Run setup script:**
+
+   **Option A: Full Setup (Recommended for first time)**
    ```bash
    chmod +x scripts/dev-setup.sh
-   ./scripts/dev-setup.sh
+   ./scripts/dev-setup.sh --f
    ```
+   
+   **Option B: Development Mode (Database only)**
+   ```bash
+   chmod +x scripts/dev-setup.sh
+   ./scripts/dev-setup.sh --dev
+   ```
+
+### Setup Modes
+
+**Full Setup (`--f` or `--full`):**
+- Starts all containers (PostgreSQL, RabbitMQ, Backend)
+- Runs database migrations
+- Seeds test data
+- Perfect for complete environment setup
+
+**Development Mode (`--dev`):**
+- Starts only the database container
+- Runs database migrations
+- Skips seeding
+- Perfect for local development with hot reload
+- You can then run `npm run start:dev` locally
 
 The setup script will:
 - Check Docker installation
-- Start all containers (PostgreSQL, RabbitMQ, Backend)
+- Start containers based on selected mode
 - Run database migrations
-- Seed test data
+- Seed test data (full mode only)
 - Show you the service URLs
 
 ### Daily Development
 
-**Start development environment:**
+**For Full Setup Users:**
 ```bash
 ./scripts/dev/dev-start.sh
+```
+
+**For Development Mode Users:**
+```bash
+# Start database (if not running)
+./scripts/dev-setup.sh --dev
+
+# Start backend locally with hot reload
+npm run start:dev
 ```
 
 **View logs:**
@@ -64,6 +95,24 @@ The setup script will:
 ```bash
 ./scripts/dev/dev-reset.sh
 ```
+
+## Troubleshooting
+
+**Check service health:**
+```bash
+./scripts/utils/health-check.sh
+```
+
+**Clean up Docker resources (Vision-TF only):**
+```bash
+./scripts/utils/cleanup.sh --all
+```
+
+**Common issues:**
+- Docker not running: Start Docker service (`sudo systemctl start docker`)
+- Port conflicts: Stop local PostgreSQL (`sudo systemctl stop postgresql`)
+- Permission errors: Use `sudo` for Docker commands on Linux
+- Docker connection issues: Set `DOCKER_HOST=unix:///var/run/docker.sock`
 
 ## Services
 
@@ -85,23 +134,6 @@ Once running, you'll have access to:
 ```bash
 ./scripts/db/db-restore.sh ./backups/vision-tf-backup-YYYYMMDD_HHMMSS.sql
 ```
-
-## Troubleshooting
-
-**Check service health:**
-```bash
-./scripts/utils/health-check.sh
-```
-
-**Clean up Docker resources:**
-```bash
-./scripts/utils/cleanup.sh
-```
-
-**Common issues:**
-- Docker not running: Start Docker Desktop
-- Port conflicts: Stop local PostgreSQL (`sudo systemctl stop postgresql`)
-- Permission errors: Use `sudo` for Docker commands on Linux
 
 ## Environment Variables
 
@@ -185,4 +217,13 @@ For issues:
 1. Check `./scripts/utils/health-check.sh`
 2. View logs with `./scripts/dev/dev-logs.sh`
 3. Reset environment with `./scripts/dev/dev-reset.sh`
-4. Contact the development team
+4. Clean up resources with `./scripts/utils/cleanup.sh --all`
+5. Contact the development team
+
+## Recent Updates
+
+- ✅ **Fixed Dockerfile.dev**: Resolved "Cannot find module '/app/dist/main'" error
+- ✅ **Added setup modes**: `--dev` (database only) and `--f` (full setup)
+- ✅ **Improved cleanup script**: Project-specific resource cleanup
+- ✅ **Enhanced error handling**: Better Docker connection and build verification
+- ✅ **Linux compatibility**: Added Docker host configuration for Linux users
