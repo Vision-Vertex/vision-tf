@@ -1,0 +1,352 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+/// User and related models
+model User {
+  id                    String           @id @default(uuid())
+  firstname             String
+  middlename            String?
+  lastname              String
+  username              String           @unique
+  email                 String           @unique
+  password              String
+  isEmailVerified       Boolean          @default(false)
+  role                  UserRole         @default(CLIENT)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // Soft-delete/audit
+  isDeleted             Boolean          @default(false)
+  deletedAt             DateTime?
+  lastLoginAt           DateTime?
+  failedLoginAttempts   Int              @default(0)
+  accountLockedUntil    DateTime?
+
+  // 2FA
+  twoFactorEnabled      Boolean          @default(false)
+  twoFactorSecret       String?
+  twoFactorBackupCodes  String[]         @default([])
+
+  // Email verification
+  emailVerificationToken String?
+  emailVerificationExpires DateTime?
+
+  // Password reset
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
+
+  // Localization
+  preferredLanguage     String?
+  timezone              String?
+
+  // Relations
+  profile               Profile?
+  authProviders         AuthProvider[]
+  refreshTokens         RefreshToken[]
+  sessions              Session[]
+  auditLogs             AuditLog[]
+  suspiciousActivities  SuspiciousActivity[]
+  loginPatterns         UserLoginPattern[]
+}
+
+enum UserRole {
+  CLIENT
+  DEVELOPER
+  ADMIN
+}
+
+model Profile {
+  id                    String           @id @default(uuid())
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String           @unique
+
+  // Shared profile fields
+  displayName           String?
+  bio                   String?
+  profilePictureUrl     String?
+  chatLastReadAt        DateTime?
+
+  // Developer-specific
+  skills                String[]
+  experience            Int?
+  availability          Json?
+  portfolioLinks        String[]
+
+  // Client-specific
+  companyName           String?
+  companyWebsite        String?
+  billingAddress        String?
+}
+
+model AuthProvider {
+  id                    String           @id @default(uuid())
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+
+  provider              String
+  providerUserId        String
+  accessToken           String?
+  refreshToken          String?
+  profileEmail          String?
+  linkedAt              DateTime         @default(now())
+
+  @@unique([provider, providerUserId])
+}
+
+model RefreshToken {
+  id                    String           @id @default(uuid())
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+
+  token                 String           @unique
+  expiresAt             DateTime
+  isRevoked             Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+  userAgent             String?
+  ipAddress             String?
+
+  @@index([token])
+}
+
+model Session {
+  id                    String           @id @default(uuid())
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+
+  sessionToken          String           @unique
+  expiresAt             DateTime
+  isActive              Boolean          @default(true)
+  createdAt             DateTime         @default(now())
+  lastActivityAt        DateTime         @default(now())
+  userAgent             String?
+  ipAddress             String?
+  deviceName            String?          // e.g., "Chrome on Windows", "iPhone"
+  rememberMe            Boolean          @default(false)
+
+  @@index([sessionToken])
+  @@index([userId, isActive])
+}
+
+model AuditLog {
+  id                    String           @id @default(uuid())
+  userId                String?          // null for system events
+  user                  User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Event details
+  eventType             AuditEventType
+  eventCategory         AuditEventCategory
+  description           String
+  details               Json?            // Additional event data
+  
+  // Context information
+  ipAddress             String?
+  userAgent             String?
+  sessionToken          String?
+  
+  // Metadata
+  severity              AuditSeverity    @default(INFO)
+  source                String           @default("auth-system") // auth-system, admin-panel, api, etc.
+  createdAt             DateTime         @default(now())
+  
+  // Related entities
+  targetUserId          String?          // For admin actions on other users
+  targetResource        String?          // e.g., "user-profile", "session", "role"
+  targetResourceId      String?          // ID of the affected resource
+  
+  @@index([userId])
+  @@index([eventType])
+  @@index([eventCategory])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([source])
+}
+
+model SuspiciousActivity {
+  id                    String           @id @default(uuid())
+  userId                String?          // null for system-wide events
+  user                  User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Activity details
+  activityType          SuspiciousActivityType
+  severity              SuspiciousActivitySeverity
+  description           String
+  details               Json?            // Additional activity data
+  
+  // Detection context
+  ipAddress             String?
+  userAgent             String?
+  location              String?          // Country/city if available
+  deviceFingerprint     String?          // Browser/device fingerprint
+  
+  // Risk assessment
+  riskScore             Int              @default(0) // 0-100
+  confidence            Float            @default(0.0) // 0.0-1.0
+  
+  // Status
+  status                SuspiciousActivityStatus @default(DETECTED)
+  reviewedBy            String?          // Admin who reviewed
+  reviewedAt            DateTime?
+  reviewNotes           String?
+  
+  // Timestamps
+  detectedAt            DateTime         @default(now())
+  createdAt             DateTime         @default(now())
+  
+  // Related entities
+  relatedAuditLogs      String[]         // Array of audit log IDs
+  
+  @@index([userId])
+  @@index([activityType])
+  @@index([severity])
+  @@index([status])
+  @@index([detectedAt])
+  @@index([riskScore])
+}
+
+model UserLoginPattern {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Pattern data
+  ipAddress             String
+  userAgent             String
+  location              String?          // Country/city
+  deviceFingerprint     String?
+  
+  // Usage statistics
+  loginCount            Int              @default(1)
+  firstSeenAt           DateTime         @default(now())
+  lastSeenAt            DateTime         @default(now())
+  
+  // Risk indicators
+  isSuspicious          Boolean          @default(false)
+  riskFactors           String[]         // Array of risk factors
+  
+  @@unique([userId, ipAddress, userAgent])
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([isSuspicious])
+}
+
+enum SuspiciousActivityType {
+  // Login-related
+  UNUSUAL_LOGIN_TIME
+  UNUSUAL_LOCATION
+  UNUSUAL_DEVICE
+  RAPID_LOGIN_ATTEMPTS
+  CONCURRENT_LOGINS
+  
+  // Account-related
+  PASSWORD_SPRAY_ATTACK
+  BRUTE_FORCE_ATTACK
+  ACCOUNT_TAKEOVER_ATTEMPT
+  SUSPICIOUS_ROLE_CHANGE
+  
+  // Session-related
+  SESSION_HIJACKING_ATTEMPT
+  UNUSUAL_SESSION_ACTIVITY
+  MULTIPLE_FAILED_SESSIONS
+  
+  // System-related
+  RATE_LIMIT_VIOLATION
+  API_ABUSE
+  DATA_EXFILTRATION_ATTEMPT
+}
+
+enum SuspiciousActivitySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SuspiciousActivityStatus {
+  DETECTED
+  INVESTIGATING
+  FALSE_POSITIVE
+  CONFIRMED_THREAT
+  RESOLVED
+}
+
+enum AuditEventType {
+  // Authentication events
+  USER_LOGIN
+  USER_LOGOUT
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+  
+  // Registration & verification
+  USER_REGISTERED
+  EMAIL_VERIFIED
+  EMAIL_VERIFICATION_SENT
+  
+  // Password management
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  
+  // 2FA events
+  TWO_FACTOR_SETUP
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+  TWO_FACTOR_VERIFICATION_FAILED
+  
+  // Session management
+  SESSION_CREATED
+  SESSION_TERMINATED
+  SESSION_EXPIRED
+  ALL_SESSIONS_TERMINATED
+  
+  // User management
+  USER_ROLE_CHANGED
+  USER_DEACTIVATED
+  USER_ACTIVATED
+  USER_DELETED
+  
+  // Profile events
+  PROFILE_UPDATED
+  PROFILE_VIEWED
+  
+  // Security events
+  SUSPICIOUS_ACTIVITY
+  RATE_LIMIT_EXCEEDED
+  UNAUTHORIZED_ACCESS
+  
+  // System events
+  SYSTEM_ERROR
+  CONFIGURATION_CHANGED
+  MAINTENANCE_MODE
+}
+
+enum AuditEventCategory {
+  AUTHENTICATION
+  AUTHORIZATION
+  USER_MANAGEMENT
+  SECURITY
+  SYSTEM
+  PROFILE
+  SESSION
+}
+
+enum AuditSeverity {
+  DEBUG
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
