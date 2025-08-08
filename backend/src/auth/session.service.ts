@@ -42,7 +42,7 @@ export class SessionService {
   }
 
   async terminateSession(sessionToken: string) {
-    await this.prisma.session.update({
+    await this.prisma.session.updateMany({
       where: { sessionToken },
       data: { isActive: false }
     });

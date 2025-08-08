@@ -12,6 +12,7 @@ import { TwoFactorService } from './two-factor.service';
 import { SessionService } from './session.service';
 import { RolesGuard } from './guards/roles.guard';
 import { AuthGuardWithRoles } from './guards/auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -25,7 +26,16 @@ import { AuthGuardWithRoles } from './guards/auth.guard';
       signOptions: { expiresIn: '1h' },
     }),
   ],
-  providers: [AuthService, JwtStrategy, TwoFactorService, SessionService, RolesGuard, AuthGuardWithRoles],
+  providers: [
+    AuthService, 
+    JwtStrategy, 
+    TwoFactorService, 
+    SessionService, 
+    RolesGuard, 
+    AuthGuardWithRoles,
+    JwtAuthGuard
+  ],
   controllers: [AuthController],
+  exports: [AuthService, JwtAuthGuard, SessionService],
 })
 export class AuthModule {}

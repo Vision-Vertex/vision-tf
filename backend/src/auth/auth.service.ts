@@ -211,10 +211,44 @@ export class AuthService {
       });
     }
 
-    // Log successful 2FA verification and login
-    await this.auditService.logUserLogin(user.id, ipAddress, userAgent);
+    // Create session after successful 2FA verification
+    const session = await this.sessionService.createSession(
+      user.id, 
+      userAgent || 'Unknown', 
+      ipAddress || 'Unknown', 
+      false // Default to false for 2FA, can be enhanced later
+    );
 
-    return await this._signToken(user.id, user.email, user.role);
+    // Analyze login activity for suspicious behavior
+    const loginContext: LoginContext = {
+      userId: user.id,
+      ipAddress: ipAddress || 'Unknown',
+      userAgent: userAgent || 'Unknown',
+      timestamp: new Date(),
+    };
+
+    const riskAssessment = await this.suspiciousActivityService.analyzeLoginActivity(loginContext);
+
+    // Log successful 2FA verification and login
+    await this.auditService.logUserLogin(user.id, ipAddress, userAgent, session.sessionToken);
+    await this.auditService.logSessionCreated(user.id, session.sessionToken, ipAddress, userAgent);
+
+    // Detect and log suspicious activity if risk is significant
+    if (riskAssessment.riskScore >= 20) {
+      await this.suspiciousActivityService.detectSuspiciousActivity(
+        user.id,
+        'UNUSUAL_LOGIN_TIME',
+        `Suspicious login detected with risk score: ${riskAssessment.riskScore}`,
+        {
+          riskFactors: riskAssessment.riskFactors,
+          confidence: riskAssessment.confidence,
+        },
+        loginContext,
+        riskAssessment,
+      );
+    }
+
+    return await this._signToken(user.id, user.email, user.role, session.sessionToken);
   }
 
   async verifyEmail(dto: VerifyEmailDto) {
@@ -457,7 +491,7 @@ export class AuthService {
   }
 
   private async _signToken(userId: string, email: string, role: string, sessionToken?: string) {
-    const payload = { sub: userId, email, role };
+    const payload = { sub: userId, email, role, sessionToken };
     const accessToken = this.jwt.sign(payload);
     const refreshToken = crypto.randomBytes(40).toString('hex');
 
