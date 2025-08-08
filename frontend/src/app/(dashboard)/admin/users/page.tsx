@@ -7,3 +7,4 @@
 // - Add user details modal
 // - Add confirmation dialogs
 // - Add responsive design
+

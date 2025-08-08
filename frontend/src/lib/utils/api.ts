@@ -4,3 +4,4 @@
 // - isAuthError(error) - Check if it's an authentication error
 // - getErrorMessage(error) - Extract user-friendly error message
 // - formatApiResponse(data) - Format API response data
+

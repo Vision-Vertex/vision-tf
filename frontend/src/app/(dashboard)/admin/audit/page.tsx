@@ -5,3 +5,4 @@
 // - Add log details modal
 // - Add export functionality
 // - Add responsive design
+

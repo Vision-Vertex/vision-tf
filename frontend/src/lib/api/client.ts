@@ -7,3 +7,4 @@
 // - Handle 500 responses (show server error)
 // - Setup timeout (30 seconds)
 // - Setup retry logic (3 attempts)
+

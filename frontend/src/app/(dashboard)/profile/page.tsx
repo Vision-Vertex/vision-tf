@@ -8,3 +8,4 @@
 // - Add portfolio section (for developers)
 // - Add company information (for clients)
 // - Add responsive design
+
