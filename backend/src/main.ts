@@ -45,7 +45,7 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
-    .addServer('http://localhost:3000/v1', 'Development server - v1')
+    .addServer('http://localhost:3000', 'Development server - v1')
     .addServer('https://api.vision-tf.com/v1', 'Production server - v1')
     .build();
 
