@@ -63,31 +63,77 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
-    const user = await this.prisma.user.create({
-      data: {
-        ...dto,
-        password: hashedPassword,
-        emailVerificationToken,
-        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      },
+    // Create user and profile in a transaction
+    const result = await this.prisma.$transaction(async (prisma) => {
+      const user = await prisma.user.create({
+        data: {
+          ...dto,
+          password: hashedPassword,
+          emailVerificationToken,
+          emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        },
+      });
+
+      // Create profile with role-specific defaults
+      const displayName = `${dto.firstname} ${dto.lastname}`.trim();
+      
+      // Base profile data
+      const profileData: any = {
+        userId: user.id,
+        displayName,
+        bio: null,
+        profilePictureUrl: null,
+        chatLastReadAt: null,
+        skills: [],
+        experience: null,
+        availability: null,
+        portfolioLinks: [],
+        companyName: null,
+        companyWebsite: null,
+        billingAddress: null,
+      };
+
+      // Role-specific profile customization
+      switch (user.role) {
+        case 'CLIENT':
+          // Keep default values for CLIENT
+          break;
+        case 'DEVELOPER':
+          profileData.experience = 0; // Default to 0 years
+          profileData.availability = { available: true, hours: '9-5' }; // Default availability
+          break;
+        case 'ADMIN':
+          profileData.companyName = 'Vision-TF System'; // Default system name
+          break;
+      }
+
+      const profile = await prisma.profile.create({
+        data: profileData,
+      });
+
+      return { user, profile };
     });
 
     // Send verification email
     await this.emailService.sendEmailVerification(
-      user.email,
+      result.user.email,
       emailVerificationToken,
     );
 
     // Log user registration
-    await this.auditService.logUserRegistered(user.id, user.email);
+    await this.auditService.logUserRegistered(result.user.id, result.user.email);
 
     return new CreatedResponse(
       'User registered successfully. Please check your email to verify your account.',
       {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        isEmailVerified: user.isEmailVerified,
+        id: result.user.id,
+        email: result.user.email,
+        username: result.user.username,
+        isEmailVerified: result.user.isEmailVerified,
+        profile: {
+          displayName: result.profile.displayName,
+          role: result.user.role,
+        },
       },
     );
   }

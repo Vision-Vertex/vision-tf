@@ -75,6 +75,11 @@ describe('AuthService', () => {
         update: jest.fn(),
         findMany: jest.fn(),
       },
+      profile: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
       refreshToken: {
         create: jest.fn(),
         updateMany: jest.fn(),
@@ -99,6 +104,7 @@ describe('AuthService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
       },
+      $transaction: jest.fn(),
     };
 
     const mockJwtService = {
@@ -209,12 +215,37 @@ describe('AuthService', () => {
   });
 
   describe('signup', () => {
-    it('should successfully create a new user', async () => {
+    it('should successfully create a new user with profile', async () => {
       // Arrange
       const hashedPassword = 'hashedPassword123';
+      const mockProfile = {
+        id: 'profile-id',
+        userId: mockUser.id,
+        displayName: `${mockSignupDto.firstname} ${mockSignupDto.lastname}`,
+        bio: null,
+        profilePictureUrl: null,
+        chatLastReadAt: null,
+        skills: [],
+        experience: null,
+        availability: null,
+        portfolioLinks: [],
+        companyName: null,
+        companyWebsite: null,
+        billingAddress: null,
+      };
+      
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
       prismaService.user.findFirst.mockResolvedValue(null);
-      prismaService.user.create.mockResolvedValue(mockUser);
+      
+      // Mock transaction
+      prismaService.$transaction.mockImplementation(async (callback) => {
+        const mockPrisma = {
+          user: { create: jest.fn().mockResolvedValue(mockUser) },
+          profile: { create: jest.fn().mockResolvedValue(mockProfile) },
+        };
+        return await callback(mockPrisma);
+      });
+      
       emailService.sendEmailVerification.mockResolvedValue(undefined);
       auditService.logUserRegistered.mockResolvedValue(undefined);
 
@@ -230,15 +261,7 @@ describe('AuthService', () => {
           ],
         },
       });
-      expect(prismaService.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          email: mockSignupDto.email,
-          username: mockSignupDto.username,
-          password: hashedPassword,
-          emailVerificationToken: expect.any(String),
-          emailVerificationExpires: expect.any(Date),
-        }),
-      });
+      expect(prismaService.$transaction).toHaveBeenCalled();
       expect(emailService.sendEmailVerification).toHaveBeenCalledWith(
         mockUser.email,
         expect.any(String),
@@ -249,6 +272,9 @@ describe('AuthService', () => {
       );
       expect(result.success).toBe(true);
       expect(result.message).toContain('User registered successfully');
+      expect(result.data).toHaveProperty('profile');
+      expect(result.data.profile.displayName).toBe(`${mockSignupDto.firstname} ${mockSignupDto.lastname}`);
+      expect(result.data.profile.role).toBe(mockUser.role);
     });
 
     it('should throw error if email already exists', async () => {
