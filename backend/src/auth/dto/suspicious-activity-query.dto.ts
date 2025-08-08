@@ -1,6 +1,17 @@
-import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsEnum,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { SuspiciousActivityType, SuspiciousActivitySeverity, SuspiciousActivityStatus } from '@prisma/client';
+import {
+  SuspiciousActivityType,
+  SuspiciousActivitySeverity,
+  SuspiciousActivityStatus,
+} from '@prisma/client';
 
 export class SuspiciousActivityQueryDto {
   @ApiPropertyOptional({
@@ -56,4 +67,4 @@ export class SuspiciousActivityQueryDto {
   @IsNumber()
   @Min(0)
   offset?: number;
-} 
+}

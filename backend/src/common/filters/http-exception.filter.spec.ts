@@ -43,7 +43,10 @@ describe('HttpExceptionFilter', () => {
   describe('catch', () => {
     it('should handle string exception response', () => {
       // Arrange
-      const exception = new HttpException('Simple error message', HttpStatus.BAD_REQUEST);
+      const exception = new HttpException(
+        'Simple error message',
+        HttpStatus.BAD_REQUEST,
+      );
 
       // Act
       filter.catch(exception, mockArgumentsHost);
@@ -58,7 +61,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -66,7 +69,7 @@ describe('HttpExceptionFilter', () => {
       // Arrange
       const exception = new HttpException(
         { message: 'Object error message', error: 'CUSTOM_ERROR' },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -82,7 +85,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'CUSTOM_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -94,7 +97,7 @@ describe('HttpExceptionFilter', () => {
           error: 'VALIDATION_ERROR',
           details: { field: 'email', reason: 'Invalid format' },
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -111,7 +114,7 @@ describe('HttpExceptionFilter', () => {
           details: { field: 'email', reason: 'Invalid format' },
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -125,7 +128,7 @@ describe('HttpExceptionFilter', () => {
             { field: 'password', message: 'Password too short' },
           ],
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -145,7 +148,7 @@ describe('HttpExceptionFilter', () => {
           ],
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -153,7 +156,7 @@ describe('HttpExceptionFilter', () => {
       // Arrange
       const exception = new HttpException(
         { error: 'CUSTOM_ERROR', details: 'Some details' },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -170,7 +173,7 @@ describe('HttpExceptionFilter', () => {
           details: 'Some details',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -178,7 +181,7 @@ describe('HttpExceptionFilter', () => {
       // Arrange
       const exception = new HttpException(
         { message: 'No error code provided' },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -194,21 +197,33 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR', // Default error code for 400
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
     it('should handle different HTTP status codes with appropriate error codes', () => {
       // Arrange
       const statusCodeTests = [
-        { status: HttpStatus.BAD_REQUEST, expectedErrorCode: 'VALIDATION_ERROR' },
+        {
+          status: HttpStatus.BAD_REQUEST,
+          expectedErrorCode: 'VALIDATION_ERROR',
+        },
         { status: HttpStatus.UNAUTHORIZED, expectedErrorCode: 'UNAUTHORIZED' },
         { status: HttpStatus.FORBIDDEN, expectedErrorCode: 'FORBIDDEN' },
         { status: HttpStatus.NOT_FOUND, expectedErrorCode: 'NOT_FOUND' },
         { status: HttpStatus.CONFLICT, expectedErrorCode: 'CONFLICT' },
-        { status: HttpStatus.UNPROCESSABLE_ENTITY, expectedErrorCode: 'UNPROCESSABLE_ENTITY' },
-        { status: HttpStatus.TOO_MANY_REQUESTS, expectedErrorCode: 'RATE_LIMIT_EXCEEDED' },
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, expectedErrorCode: 'INTERNAL_SERVER_ERROR' },
+        {
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          expectedErrorCode: 'UNPROCESSABLE_ENTITY',
+        },
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          expectedErrorCode: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          expectedErrorCode: 'INTERNAL_SERVER_ERROR',
+        },
         { status: HttpStatus.BAD_GATEWAY, expectedErrorCode: 'UNKNOWN_ERROR' },
       ];
 
@@ -229,7 +244,7 @@ describe('HttpExceptionFilter', () => {
             errorCode: expectedErrorCode,
             timestamp: expect.any(String),
             path: '/api/v1/test',
-          })
+          }),
         );
 
         // Reset mocks for next iteration
@@ -261,7 +276,7 @@ describe('HttpExceptionFilter', () => {
           error: 'VALIDATION_ERROR',
           details: complexDetails,
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
 
       // Act
@@ -278,7 +293,7 @@ describe('HttpExceptionFilter', () => {
           details: complexDetails,
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -313,7 +328,7 @@ describe('HttpExceptionFilter', () => {
           details: nestedError.details,
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -329,7 +344,7 @@ describe('HttpExceptionFilter', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           path: '/api/v1/users/123/profile',
-        })
+        }),
       );
     });
 
@@ -345,7 +360,7 @@ describe('HttpExceptionFilter', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           path: '',
-        })
+        }),
       );
     });
 
@@ -361,7 +376,7 @@ describe('HttpExceptionFilter', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           path: '',
-        })
+        }),
       );
     });
 
@@ -374,7 +389,9 @@ describe('HttpExceptionFilter', () => {
 
       // Assert
       const responseCall = mockResponse.json.mock.calls[0][0];
-      expect(responseCall.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(responseCall.timestamp).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
     });
 
     it('should handle exception with null response', () => {
@@ -394,7 +411,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -415,7 +432,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -436,7 +453,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -457,7 +474,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
@@ -479,14 +496,17 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
     it('should handle exception with unicode characters in message', () => {
       // Arrange
       const unicodeMessage = 'Erro com caracteres especiais: áéíóú ñ ç';
-      const exception = new HttpException(unicodeMessage, HttpStatus.BAD_REQUEST);
+      const exception = new HttpException(
+        unicodeMessage,
+        HttpStatus.BAD_REQUEST,
+      );
 
       // Act
       filter.catch(exception, mockArgumentsHost);
@@ -501,14 +521,18 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
 
     it('should handle exception with special characters in message', () => {
       // Arrange
-      const specialMessage = 'Error with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
-      const exception = new HttpException(specialMessage, HttpStatus.BAD_REQUEST);
+      const specialMessage =
+        'Error with special chars: !@#$%^&*()_+-=[]{}|;:,.<>?';
+      const exception = new HttpException(
+        specialMessage,
+        HttpStatus.BAD_REQUEST,
+      );
 
       // Act
       filter.catch(exception, mockArgumentsHost);
@@ -523,7 +547,7 @@ describe('HttpExceptionFilter', () => {
           errorCode: 'VALIDATION_ERROR',
           timestamp: expect.any(String),
           path: '/api/v1/test',
-        })
+        }),
       );
     });
   });
@@ -532,17 +556,35 @@ describe('HttpExceptionFilter', () => {
     it('should return correct error codes for all mapped status codes', () => {
       // This tests the private method indirectly through the catch method
       const statusCodeTests = [
-        { status: HttpStatus.BAD_REQUEST, expectedErrorCode: 'VALIDATION_ERROR' },
+        {
+          status: HttpStatus.BAD_REQUEST,
+          expectedErrorCode: 'VALIDATION_ERROR',
+        },
         { status: HttpStatus.UNAUTHORIZED, expectedErrorCode: 'UNAUTHORIZED' },
         { status: HttpStatus.FORBIDDEN, expectedErrorCode: 'FORBIDDEN' },
         { status: HttpStatus.NOT_FOUND, expectedErrorCode: 'NOT_FOUND' },
         { status: HttpStatus.CONFLICT, expectedErrorCode: 'CONFLICT' },
-        { status: HttpStatus.UNPROCESSABLE_ENTITY, expectedErrorCode: 'UNPROCESSABLE_ENTITY' },
-        { status: HttpStatus.TOO_MANY_REQUESTS, expectedErrorCode: 'RATE_LIMIT_EXCEEDED' },
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, expectedErrorCode: 'INTERNAL_SERVER_ERROR' },
+        {
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          expectedErrorCode: 'UNPROCESSABLE_ENTITY',
+        },
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          expectedErrorCode: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          expectedErrorCode: 'INTERNAL_SERVER_ERROR',
+        },
         { status: HttpStatus.BAD_GATEWAY, expectedErrorCode: 'UNKNOWN_ERROR' },
-        { status: HttpStatus.SERVICE_UNAVAILABLE, expectedErrorCode: 'UNKNOWN_ERROR' },
-        { status: HttpStatus.GATEWAY_TIMEOUT, expectedErrorCode: 'UNKNOWN_ERROR' },
+        {
+          status: HttpStatus.SERVICE_UNAVAILABLE,
+          expectedErrorCode: 'UNKNOWN_ERROR',
+        },
+        {
+          status: HttpStatus.GATEWAY_TIMEOUT,
+          expectedErrorCode: 'UNKNOWN_ERROR',
+        },
         { status: 999, expectedErrorCode: 'UNKNOWN_ERROR' }, // Unknown status code
       ];
 
@@ -557,7 +599,7 @@ describe('HttpExceptionFilter', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             errorCode: expectedErrorCode,
-          })
+          }),
         );
 
         // Reset mocks for next iteration
@@ -565,4 +607,4 @@ describe('HttpExceptionFilter', () => {
       });
     });
   });
-}); 
+});

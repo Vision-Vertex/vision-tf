@@ -24,7 +24,8 @@ export class AppController {
         data: {
           name: 'Vision-TF Authentication API',
           version: '1.0.0',
-          description: 'Complete authentication system with advanced security features',
+          description:
+            'Complete authentication system with advanced security features',
           documentation: '/api',
           health: '/v1/health',
         },
@@ -41,7 +42,8 @@ export class AppController {
       data: {
         name: 'Vision-TF Authentication API',
         version: '1.0.0',
-        description: 'Complete authentication system with advanced security features',
+        description:
+          'Complete authentication system with advanced security features',
         documentation: '/api',
         health: '/v1/health',
       },

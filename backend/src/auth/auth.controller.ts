@@ -1,11 +1,22 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Param, Query, Put, Version } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiBearerAuth, 
-  ApiBody, 
-  ApiParam, 
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  Param,
+  Query,
+  Put,
+  Version,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiParam,
   ApiQuery,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -14,7 +25,7 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
   ApiConflictResponse,
-  ApiInternalServerErrorResponse
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -35,16 +46,16 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthGuardWithRoles } from './guards/auth.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { 
-  SuccessResponse, 
-  CreatedResponse, 
-  AuthResponse, 
+import {
+  SuccessResponse,
+  CreatedResponse,
+  AuthResponse,
   TwoFactorSetupResponse,
   UserProfile,
   SessionInfo,
   AuditLogEntry,
   SuspiciousActivity,
-  LoginPattern
+  LoginPattern,
 } from '../common/dto/api-response.dto';
 
 @ApiTags('Authentication & Authorization')
@@ -58,7 +69,8 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 signups per 5 minutes
   @ApiOperation({
     summary: 'Register a new user',
-    description: 'Creates a new user account with email verification. The user will receive a verification email.',
+    description:
+      'Creates a new user account with email verification. The user will receive a verification email.',
   })
   @ApiBody({ type: SignupDto })
   @ApiCreatedResponse({
@@ -68,7 +80,8 @@ export class AuthController {
       example: {
         success: true,
         statusCode: 201,
-        message: 'User registered successfully. Please check your email to verify your account.',
+        message:
+          'User registered successfully. Please check your email to verify your account.',
         data: {
           id: 'e33eab6b-e559-417d-aa99-d606cb7b9ed4',
           email: 'john.doe@example.com',
@@ -107,7 +120,8 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 login attempts per 5 minutes
   @ApiOperation({
     summary: 'User login',
-    description: 'Authenticates a user and returns JWT tokens. If 2FA is enabled, returns a 2FA requirement response.',
+    description:
+      'Authenticates a user and returns JWT tokens. If 2FA is enabled, returns a 2FA requirement response.',
   })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({
@@ -175,7 +189,8 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 300000 } }) // 10 2FA attempts per 5 minutes
   @ApiOperation({
     summary: 'Verify 2FA code',
-    description: 'Verifies 2FA code and completes login process. Accepts TOTP codes or backup codes.',
+    description:
+      'Verifies 2FA code and completes login process. Accepts TOTP codes or backup codes.',
   })
   @ApiBody({ type: Verify2faDto })
   @ApiOkResponse({
@@ -258,7 +273,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Setup 2FA',
-    description: 'Initiates 2FA setup by generating a secret and QR code for authenticator apps.',
+    description:
+      'Initiates 2FA setup by generating a secret and QR code for authenticator apps.',
   })
   @ApiOkResponse({
     description: '2FA setup initiated',
@@ -272,8 +288,15 @@ export class AuthController {
           secret: 'JBSWY3DPEHPK3PXP',
           qrCodeUrl: 'otpauth://totp/Vision-TF...',
           qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
-          backupCodes: ['A1B2C3D4', 'E5F6G7H8', 'I9J0K1L2', 'M3N4O5P6', 'Q7R8S9T0'],
-          instructions: 'Scan the QR code with your authenticator app or enter the secret manually.',
+          backupCodes: [
+            'A1B2C3D4',
+            'E5F6G7H8',
+            'I9J0K1L2',
+            'M3N4O5P6',
+            'Q7R8S9T0',
+          ],
+          instructions:
+            'Scan the QR code with your authenticator app or enter the secret manually.',
         },
         timestamp: '2025-08-06T09:25:00.000Z',
         path: '/auth/setup-2fa',
@@ -295,7 +318,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Enable 2FA',
-    description: 'Enables 2FA for the user account after verifying the setup code.',
+    description:
+      'Enables 2FA for the user account after verifying the setup code.',
   })
   @ApiBody({ type: Enable2faDto })
   @ApiOkResponse({
@@ -311,7 +335,12 @@ export class AuthController {
   enable2fa(@Req() req: any, @Body() dto: Enable2faDto) {
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
-    return this.authService.enable2fa(req.user.userId, dto, ipAddress, userAgent);
+    return this.authService.enable2fa(
+      req.user.userId,
+      dto,
+      ipAddress,
+      userAgent,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -320,7 +349,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Disable 2FA',
-    description: 'Disables 2FA for the user account after verifying the current code.',
+    description:
+      'Disables 2FA for the user account after verifying the current code.',
   })
   @ApiBody({ type: Enable2faDto })
   @ApiOkResponse({
@@ -363,7 +393,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'User logout',
-    description: 'Logs out the user and terminates sessions. Can terminate specific session or all sessions.',
+    description:
+      'Logs out the user and terminates sessions. Can terminate specific session or all sessions.',
   })
   @ApiBody({
     schema: {
@@ -387,10 +418,19 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized - JWT token required',
   })
-  logout(@Req() req: any, @Body() body: { refreshToken?: string; sessionToken?: string }) {
+  logout(
+    @Req() req: any,
+    @Body() body: { refreshToken?: string; sessionToken?: string },
+  ) {
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
-    return this.authService.logout(req.user.userId, body.refreshToken, body.sessionToken, ipAddress, userAgent);
+    return this.authService.logout(
+      req.user.userId,
+      body.refreshToken,
+      body.sessionToken,
+      ipAddress,
+      userAgent,
+    );
   }
 
   // Session management endpoints
@@ -433,7 +473,10 @@ export class AuthController {
   })
   terminateSession(@Req() req: any, @Body() dto: TerminateSessionsDto) {
     if (dto.sessionToken) {
-      return this.authService.terminateSession(req.user.userId, dto.sessionToken);
+      return this.authService.terminateSession(
+        req.user.userId,
+        dto.sessionToken,
+      );
     } else {
       return this.authService.terminateAllSessions(req.user.userId);
     }
@@ -523,7 +566,12 @@ export class AuthController {
   changeUserRole(@Req() req: any, @Body() dto: ChangeUserRoleDto) {
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
-    return this.authService.changeUserRole(dto, req.user.userId, ipAddress, userAgent);
+    return this.authService.changeUserRole(
+      dto,
+      req.user.userId,
+      ipAddress,
+      userAgent,
+    );
   }
 
   @UseGuards(AuthGuardWithRoles)
@@ -557,7 +605,12 @@ export class AuthController {
   deactivateUserByAdmin(@Req() req: any, @Param('userId') userId: string) {
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
-    return this.authService.deactivateUserByAdmin(userId, req.user.userId, ipAddress, userAgent);
+    return this.authService.deactivateUserByAdmin(
+      userId,
+      req.user.userId,
+      ipAddress,
+      userAgent,
+    );
   }
 
   // Developer-only endpoints
@@ -569,7 +622,8 @@ export class AuthController {
   @ApiTags('User Management')
   @ApiOperation({
     summary: 'Get developer profile',
-    description: 'Retrieves developer profile information (developer role only).',
+    description:
+      'Retrieves developer profile information (developer role only).',
   })
   @ApiOkResponse({
     description: 'Developer profile retrieved successfully',
@@ -698,7 +752,10 @@ export class AuthController {
   @ApiForbiddenResponse({
     description: 'Forbidden - Admin role required',
   })
-  getUserAuditLogs(@Param('userId') userId: string, @Query() query: AuditQueryDto) {
+  getUserAuditLogs(
+    @Param('userId') userId: string,
+    @Query() query: AuditQueryDto,
+  ) {
     return this.authService.getUserAuditLogs(userId, query.limit, query.offset);
   }
 
@@ -711,7 +768,8 @@ export class AuthController {
   @ApiTags('Audit & Security')
   @ApiOperation({
     summary: 'Get suspicious activities',
-    description: 'Retrieves suspicious activities with optional filtering (admin only).',
+    description:
+      'Retrieves suspicious activities with optional filtering (admin only).',
   })
   @ApiQuery({ type: SuspiciousActivityQueryDto })
   @ApiOkResponse({
@@ -807,7 +865,8 @@ export class AuthController {
   @ApiTags('Audit & Security')
   @ApiOperation({
     summary: 'Detect password spray attacks',
-    description: 'Triggers password spray attack detection analysis (admin only).',
+    description:
+      'Triggers password spray attack detection analysis (admin only).',
   })
   @ApiOkResponse({
     description: 'Password spray attack detection completed',

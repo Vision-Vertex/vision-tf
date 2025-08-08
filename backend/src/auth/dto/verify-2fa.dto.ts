@@ -25,4 +25,4 @@ export class Verify2faDto {
   })
   @IsString()
   code: string;
-} 
+}

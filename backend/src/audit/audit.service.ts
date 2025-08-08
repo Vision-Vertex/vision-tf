@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuditEventType, AuditEventCategory, AuditSeverity } from '@prisma/client';
+import {
+  AuditEventType,
+  AuditEventCategory,
+  AuditSeverity,
+} from '@prisma/client';
 
 export interface AuditLogData {
   userId?: string;
@@ -48,7 +52,12 @@ export class AuditService {
   }
 
   // Authentication events
-  async logUserLogin(userId: string, ipAddress?: string, userAgent?: string, sessionToken?: string) {
+  async logUserLogin(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+    sessionToken?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.USER_LOGIN,
@@ -61,7 +70,12 @@ export class AuditService {
     });
   }
 
-  async logUserLogout(userId: string, ipAddress?: string, userAgent?: string, sessionToken?: string) {
+  async logUserLogout(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+    sessionToken?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.USER_LOGOUT,
@@ -74,7 +88,12 @@ export class AuditService {
     });
   }
 
-  async logLoginFailed(email: string, ipAddress?: string, userAgent?: string, reason?: string) {
+  async logLoginFailed(
+    email: string,
+    ipAddress?: string,
+    userAgent?: string,
+    reason?: string,
+  ) {
     await this.log({
       eventType: AuditEventType.LOGIN_FAILED,
       eventCategory: AuditEventCategory.SECURITY,
@@ -86,7 +105,11 @@ export class AuditService {
     });
   }
 
-  async logAccountLocked(userId: string, ipAddress?: string, userAgent?: string) {
+  async logAccountLocked(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.ACCOUNT_LOCKED,
@@ -98,7 +121,11 @@ export class AuditService {
     });
   }
 
-  async logAccountUnlocked(userId: string, ipAddress?: string, userAgent?: string) {
+  async logAccountUnlocked(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.ACCOUNT_UNLOCKED,
@@ -111,7 +138,12 @@ export class AuditService {
   }
 
   // Registration events
-  async logUserRegistered(userId: string, email: string, ipAddress?: string, userAgent?: string) {
+  async logUserRegistered(
+    userId: string,
+    email: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.USER_REGISTERED,
@@ -124,7 +156,11 @@ export class AuditService {
     });
   }
 
-  async logEmailVerified(userId: string, ipAddress?: string, userAgent?: string) {
+  async logEmailVerified(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.EMAIL_VERIFIED,
@@ -137,7 +173,11 @@ export class AuditService {
   }
 
   // Password events
-  async logPasswordChanged(userId: string, ipAddress?: string, userAgent?: string) {
+  async logPasswordChanged(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.PASSWORD_CHANGED,
@@ -149,7 +189,11 @@ export class AuditService {
     });
   }
 
-  async logPasswordResetRequested(email: string, ipAddress?: string, userAgent?: string) {
+  async logPasswordResetRequested(
+    email: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       eventType: AuditEventType.PASSWORD_RESET_REQUESTED,
       eventCategory: AuditEventCategory.SECURITY,
@@ -161,7 +205,11 @@ export class AuditService {
     });
   }
 
-  async logPasswordResetCompleted(userId: string, ipAddress?: string, userAgent?: string) {
+  async logPasswordResetCompleted(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.PASSWORD_RESET_COMPLETED,
@@ -174,7 +222,11 @@ export class AuditService {
   }
 
   // 2FA events
-  async logTwoFactorSetup(userId: string, ipAddress?: string, userAgent?: string) {
+  async logTwoFactorSetup(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.TWO_FACTOR_SETUP,
@@ -186,7 +238,11 @@ export class AuditService {
     });
   }
 
-  async logTwoFactorEnabled(userId: string, ipAddress?: string, userAgent?: string) {
+  async logTwoFactorEnabled(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.TWO_FACTOR_ENABLED,
@@ -198,7 +254,11 @@ export class AuditService {
     });
   }
 
-  async logTwoFactorDisabled(userId: string, ipAddress?: string, userAgent?: string) {
+  async logTwoFactorDisabled(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.TWO_FACTOR_DISABLED,
@@ -210,7 +270,11 @@ export class AuditService {
     });
   }
 
-  async logTwoFactorVerificationFailed(userId: string, ipAddress?: string, userAgent?: string) {
+  async logTwoFactorVerificationFailed(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.TWO_FACTOR_VERIFICATION_FAILED,
@@ -223,7 +287,12 @@ export class AuditService {
   }
 
   // Session events
-  async logSessionCreated(userId: string, sessionToken: string, ipAddress?: string, userAgent?: string) {
+  async logSessionCreated(
+    userId: string,
+    sessionToken: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.SESSION_CREATED,
@@ -236,7 +305,12 @@ export class AuditService {
     });
   }
 
-  async logSessionTerminated(userId: string, sessionToken: string, ipAddress?: string, userAgent?: string) {
+  async logSessionTerminated(
+    userId: string,
+    sessionToken: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.SESSION_TERMINATED,
@@ -249,7 +323,11 @@ export class AuditService {
     });
   }
 
-  async logAllSessionsTerminated(userId: string, ipAddress?: string, userAgent?: string) {
+  async logAllSessionsTerminated(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.ALL_SESSIONS_TERMINATED,
@@ -262,7 +340,14 @@ export class AuditService {
   }
 
   // User management events
-  async logUserRoleChanged(adminUserId: string, targetUserId: string, oldRole: string, newRole: string, ipAddress?: string, userAgent?: string) {
+  async logUserRoleChanged(
+    adminUserId: string,
+    targetUserId: string,
+    oldRole: string,
+    newRole: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId: adminUserId,
       eventType: AuditEventType.USER_ROLE_CHANGED,
@@ -278,7 +363,12 @@ export class AuditService {
     });
   }
 
-  async logUserDeactivated(adminUserId: string, targetUserId: string, ipAddress?: string, userAgent?: string) {
+  async logUserDeactivated(
+    adminUserId: string,
+    targetUserId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId: adminUserId,
       eventType: AuditEventType.USER_DEACTIVATED,
@@ -306,7 +396,13 @@ export class AuditService {
   }
 
   // Security events
-  async logSuspiciousActivity(description: string, userId?: string, details?: any, ipAddress?: string, userAgent?: string) {
+  async logSuspiciousActivity(
+    description: string,
+    userId?: string,
+    details?: any,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     await this.log({
       userId,
       eventType: AuditEventType.SUSPICIOUS_ACTIVITY,
@@ -319,7 +415,11 @@ export class AuditService {
     });
   }
 
-  async logUnauthorizedAccess(ipAddress?: string, userAgent?: string, details?: any) {
+  async logUnauthorizedAccess(
+    ipAddress?: string,
+    userAgent?: string,
+    details?: any,
+  ) {
     await this.log({
       eventType: AuditEventType.UNAUTHORIZED_ACCESS,
       eventCategory: AuditEventCategory.SECURITY,
@@ -343,7 +443,11 @@ export class AuditService {
   }
 
   // Query methods
-  async getUserAuditLogs(userId: string, limit: number = 50, offset: number = 0) {
+  async getUserAuditLogs(
+    userId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
     return await this.prisma.auditLog.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -352,7 +456,11 @@ export class AuditService {
     });
   }
 
-  async getAuditLogsByType(eventType: AuditEventType, limit: number = 50, offset: number = 0) {
+  async getAuditLogsByType(
+    eventType: AuditEventType,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
     return await this.prisma.auditLog.findMany({
       where: { eventType },
       orderBy: { createdAt: 'desc' },
@@ -361,7 +469,11 @@ export class AuditService {
     });
   }
 
-  async getAuditLogsBySeverity(severity: AuditSeverity, limit: number = 50, offset: number = 0) {
+  async getAuditLogsBySeverity(
+    severity: AuditSeverity,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
     return await this.prisma.auditLog.findMany({
       where: { severity },
       orderBy: { createdAt: 'desc' },
@@ -385,4 +497,4 @@ export class AuditService {
       },
     });
   }
-} 
+}

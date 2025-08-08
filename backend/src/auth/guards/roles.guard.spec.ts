@@ -102,7 +102,10 @@ describe('RolesGuard', () => {
         getClass: () => ({}),
       } as ExecutionContext;
 
-      reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.DEVELOPER]);
+      reflector.getAllAndOverride.mockReturnValue([
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+      ]);
 
       // Act
       const result = await guard.canActivate(mockContext);
@@ -176,7 +179,9 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
       // Act & Assert
-      expect(() => guard.canActivate(mockContext)).toThrow('Cannot read properties of null');
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        'Cannot read properties of null',
+      );
     });
 
     it('should handle case-insensitive role comparison', async () => {
@@ -254,4 +259,4 @@ describe('RolesGuard', () => {
       expect(result).toBe(true);
     });
   });
-}); 
+});

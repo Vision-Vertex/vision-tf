@@ -17,22 +17,32 @@ async function bootstrap() {
   });
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Vision-TF Authentication API')
-    .setDescription('Complete authentication system with advanced security features')
+    .setDescription(
+      'Complete authentication system with advanced security features',
+    )
     .setVersion('1.0.0')
-    .addTag('Authentication & Authorization', 'Core authentication and authorization endpoints')
+    .addTag(
+      'Authentication & Authorization',
+      'Core authentication and authorization endpoints',
+    )
     .addTag('User Management', 'User profile and account management')
     .addTag('Session Management', 'Session tracking and management')
     .addTag('Admin Operations', 'Administrative endpoints (admin only)')
-    .addTag('Audit & Security', 'Audit logging and security monitoring (admin only)')
+    .addTag(
+      'Audit & Security',
+      'Audit logging and security monitoring (admin only)',
+    )
     .addTag('Health', 'Application health and monitoring endpoints')
     .addBearerAuth(
       {
@@ -62,9 +72,15 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT ?? 3000);
-  
-  console.log(`Application is running on: http://localhost:${process.env.PORT ?? 3000}`);
-  console.log(`Swagger documentation available at: http://localhost:${process.env.PORT ?? 3000}/api`);
-  console.log(`API v1 endpoints available at: http://localhost:${process.env.PORT ?? 3000}/v1`);
+
+  console.log(
+    `Application is running on: http://localhost:${process.env.PORT ?? 3000}`,
+  );
+  console.log(
+    `Swagger documentation available at: http://localhost:${process.env.PORT ?? 3000}/api`,
+  );
+  console.log(
+    `API v1 endpoints available at: http://localhost:${process.env.PORT ?? 3000}/v1`,
+  );
 }
-bootstrap();
+void bootstrap();

@@ -1,18 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtStrategy } from './jwt.strategy';
+import { SessionService } from './session.service';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
+  let sessionService: jest.Mocked<SessionService>;
 
   beforeEach(async () => {
-    // Mock environment variable
     process.env.JWT_SECRET = 'test-secret';
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtStrategy],
+      providers: [
+        JwtStrategy,
+        {
+          provide: SessionService,
+          useValue: {
+            validateSession: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
+    sessionService = module.get(SessionService);
   });
 
   afterEach(() => {
@@ -20,113 +30,118 @@ describe('JwtStrategy', () => {
   });
 
   describe('validate', () => {
-    it('should return user payload from JWT token', () => {
-      // Arrange
+    it('should return user payload from JWT token', async () => {
       const payload = {
-        sub: 'user-123',
+        sub: 'user-id',
         email: 'test@example.com',
         role: 'CLIENT',
-        iat: 1234567890,
-        exp: 1234567890,
+        sessionToken: 'session-token-123',
       };
 
-      // Act
-      const result = strategy.validate(payload);
+      const mockSession = {
+        id: 'session-id',
+        sessionToken: 'session-token-123',
+        userId: 'user-id',
+        isActive: true,
+        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        user: { id: 'user-id', email: 'test@example.com' },
+      };
 
-      // Assert
+      sessionService.validateSession.mockResolvedValue(mockSession as any);
+
+      const result = await strategy.validate(payload);
+
       expect(result).toEqual({
-        userId: 'user-123',
+        userId: 'user-id',
         email: 'test@example.com',
         role: 'CLIENT',
+        sessionToken: 'session-token-123',
       });
+      expect(sessionService.validateSession).toHaveBeenCalledWith('session-token-123');
     });
 
-    it('should handle payload with missing optional fields', () => {
-      // Arrange
+    it('should handle payload with missing optional fields', async () => {
       const payload = {
-        sub: 'user-123',
+        sub: 'user-id',
         email: 'test@example.com',
-        // role is missing
+        role: 'CLIENT',
+        sessionToken: 'session-token-123',
       };
 
-      // Act
-      const result = strategy.validate(payload);
-
-      // Assert
-      expect(result).toEqual({
-        userId: 'user-123',
-        email: 'test@example.com',
-        role: undefined,
-      });
-    });
-
-    it('should handle payload with only required fields', () => {
-      // Arrange
-      const payload = {
-        sub: 'user-123',
-        // email and role are missing
+      const mockSession = {
+        id: 'session-id',
+        sessionToken: 'session-token-123',
+        userId: 'user-id',
+        isActive: true,
+        expiresAt: new Date(Date.now() + 3600000),
+        user: { id: 'user-id', email: 'test@example.com' },
       };
 
-      // Act
-      const result = strategy.validate(payload);
+      sessionService.validateSession.mockResolvedValue(mockSession as any);
 
-      // Assert
+      const result = await strategy.validate(payload);
+
       expect(result).toEqual({
-        userId: 'user-123',
-        email: undefined,
-        role: undefined,
+        userId: 'user-id',
+        email: 'test@example.com',
+        role: 'CLIENT',
+        sessionToken: 'session-token-123',
       });
     });
 
-    it('should handle empty payload', () => {
-      // Arrange
+    it('should handle payload with only required fields', async () => {
+      const payload = {
+        sub: 'user-id',
+        email: 'test@example.com',
+        role: 'CLIENT',
+        sessionToken: 'session-token-123',
+      };
+
+      const mockSession = {
+        id: 'session-id',
+        sessionToken: 'session-token-123',
+        userId: 'user-id',
+        isActive: true,
+        expiresAt: new Date(Date.now() + 3600000),
+        user: { id: 'user-id', email: 'test@example.com' },
+      };
+
+      sessionService.validateSession.mockResolvedValue(mockSession as any);
+
+      const result = await strategy.validate(payload);
+
+      expect(result).toEqual({
+        userId: 'user-id',
+        email: 'test@example.com',
+        role: 'CLIENT',
+        sessionToken: 'session-token-123',
+      });
+    });
+
+    it('should handle empty payload', async () => {
       const payload = {};
 
-      // Act
-      const result = strategy.validate(payload);
-
-      // Assert
-      expect(result).toEqual({
-        userId: undefined,
-        email: undefined,
-        role: undefined,
-      });
+      await expect(strategy.validate(payload)).rejects.toThrow('Session token missing from JWT payload');
     });
 
-    it('should handle null payload', () => {
-      // Arrange
-      const payload = null as any;
+    it('should handle null payload', async () => {
+      const payload = null;
 
-      // Act
-      const result = strategy.validate(payload);
-
-      // Assert
-      expect(result).toEqual({
-        userId: undefined,
-        email: undefined,
-        role: undefined,
-      });
+      await expect(strategy.validate(payload)).rejects.toThrow('Session token missing from JWT payload');
     });
   });
 
   describe('constructor', () => {
     it('should initialize with JWT secret from environment', () => {
-      // Arrange
       process.env.JWT_SECRET = 'test-secret';
-
-      // Act
-      const jwtStrategy = new JwtStrategy();
-
-      // Assert
-      expect(jwtStrategy).toBeDefined();
+      
+      expect(() => new JwtStrategy(sessionService)).not.toThrow();
     });
 
     it('should handle missing JWT_SECRET environment variable', () => {
-      // Arrange
       delete process.env.JWT_SECRET;
-
-      // Act & Assert
-      expect(() => new JwtStrategy()).toThrow();
+      
+      expect(() => new JwtStrategy(sessionService)).toThrow();
     });
   });
-}); 
+});

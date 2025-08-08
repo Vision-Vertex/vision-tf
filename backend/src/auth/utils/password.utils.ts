@@ -3,7 +3,9 @@ export interface PasswordValidationResult {
   errors: string[];
 }
 
-export function validatePasswordStrength(password: string): PasswordValidationResult {
+export function validatePasswordStrength(
+  password: string,
+): PasswordValidationResult {
   const errors: string[] = [];
 
   // Check if password is provided
@@ -41,4 +43,4 @@ export function validatePasswordStrength(password: string): PasswordValidationRe
     isValid: errors.length === 0,
     errors,
   };
-} 
+}

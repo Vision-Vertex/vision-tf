@@ -23,7 +23,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must be at least 8 characters long');
+      expect(result.errors).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
     it('should return false for password without uppercase letter', () => {
@@ -35,7 +37,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must contain at least one uppercase letter');
+      expect(result.errors).toContain(
+        'Password must contain at least one uppercase letter',
+      );
     });
 
     it('should return false for password without lowercase letter', () => {
@@ -47,7 +51,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must contain at least one lowercase letter');
+      expect(result.errors).toContain(
+        'Password must contain at least one lowercase letter',
+      );
     });
 
     it('should return false for password without number', () => {
@@ -59,7 +65,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must contain at least one number');
+      expect(result.errors).toContain(
+        'Password must contain at least one number',
+      );
     });
 
     it('should return false for password without special character', () => {
@@ -71,7 +79,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must contain at least one special character');
+      expect(result.errors).toContain(
+        'Password must contain at least one special character',
+      );
     });
 
     it('should return multiple errors for password with multiple issues', () => {
@@ -84,10 +94,18 @@ describe('Password Utils', () => {
       // Assert
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(4);
-      expect(result.errors).toContain('Password must be at least 8 characters long');
-      expect(result.errors).toContain('Password must contain at least one uppercase letter');
-      expect(result.errors).toContain('Password must contain at least one number');
-      expect(result.errors).toContain('Password must contain at least one special character');
+      expect(result.errors).toContain(
+        'Password must be at least 8 characters long',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one uppercase letter',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one number',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one special character',
+      );
     });
 
     it('should handle edge cases with special characters', () => {
@@ -117,7 +135,7 @@ describe('Password Utils', () => {
         'Test123:',
         'Test123;',
         'Test123"',
-        'Test123\'',
+        "Test123'",
         'Test123<',
         'Test123>',
         'Test123,',
@@ -125,7 +143,7 @@ describe('Password Utils', () => {
         'Test123?',
       ];
 
-      specialCharPasswords.forEach(password => {
+      specialCharPasswords.forEach((password) => {
         const result = validatePasswordStrength(password);
         expect(result.isValid).toBe(true);
         expect(result.errors).toHaveLength(0);
@@ -141,7 +159,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must be at least 8 characters long');
+      expect(result.errors).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
     it('should handle null password', () => {
@@ -153,7 +173,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must be at least 8 characters long');
+      expect(result.errors).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
     it('should handle undefined password', () => {
@@ -165,7 +187,9 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must be at least 8 characters long');
+      expect(result.errors).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
     it('should handle whitespace-only password', () => {
@@ -177,10 +201,18 @@ describe('Password Utils', () => {
 
       // Assert
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Password must contain at least one uppercase letter');
-      expect(result.errors).toContain('Password must contain at least one lowercase letter');
-      expect(result.errors).toContain('Password must contain at least one number');
-      expect(result.errors).toContain('Password must contain at least one special character');
+      expect(result.errors).toContain(
+        'Password must contain at least one uppercase letter',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one lowercase letter',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one number',
+      );
+      expect(result.errors).toContain(
+        'Password must contain at least one special character',
+      );
     });
 
     it('should handle very long password', () => {
@@ -219,4 +251,4 @@ describe('Password Utils', () => {
       expect(result.errors).toHaveLength(0);
     });
   });
-}); 
+});

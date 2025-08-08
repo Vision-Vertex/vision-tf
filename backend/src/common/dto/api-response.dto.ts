@@ -20,7 +20,13 @@ export class BaseApiResponse<T = any> {
   @ApiProperty({ description: 'Request path' })
   path: string;
 
-  constructor(success: boolean, statusCode: number, message: string, data?: T, path?: string) {
+  constructor(
+    success: boolean,
+    statusCode: number,
+    message: string,
+    data?: T,
+    path?: string,
+  ) {
     this.success = success;
     this.statusCode = statusCode;
     this.message = message;
@@ -52,7 +58,13 @@ export class ErrorResponse extends BaseApiResponse {
   @ApiProperty({ description: 'Detailed error information' })
   details?: any;
 
-  constructor(statusCode: number, message: string, errorCode?: string, details?: any, path?: string) {
+  constructor(
+    statusCode: number,
+    message: string,
+    errorCode?: string,
+    details?: any,
+    path?: string,
+  ) {
     super(false, statusCode, message, undefined, path);
     this.errorCode = errorCode;
     this.details = details;
@@ -295,4 +307,4 @@ export class LoginPattern {
 
   @ApiProperty({ description: 'Risk factors' })
   riskFactors: string[];
-} 
+}

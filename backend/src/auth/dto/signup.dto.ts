@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsOptional, MinLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  MinLength,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SignupDto {
@@ -57,16 +63,22 @@ export class SignupDto {
     description: 'User password (must meet strength requirements)',
     example: 'SecurePass123!',
     minLength: 8,
-    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$',
+    pattern:
+      '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$',
     additionalProperties: {
-      description: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
+      description:
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
     },
   })
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
-    message: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
-  })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+    {
+      message:
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
+    },
+  )
   password: string;
 
   @ApiPropertyOptional({
@@ -83,7 +95,13 @@ export class SignupDto {
     description: 'User timezone (IANA timezone identifier)',
     example: 'UTC',
     default: 'UTC',
-    enum: ['UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney'],
+    enum: [
+      'UTC',
+      'America/New_York',
+      'Europe/London',
+      'Asia/Tokyo',
+      'Australia/Sydney',
+    ],
   })
   @IsOptional()
   @IsString()

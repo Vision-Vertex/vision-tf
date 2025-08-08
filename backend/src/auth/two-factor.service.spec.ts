@@ -21,7 +21,7 @@ describe('TwoFactorService', () => {
     }).compile();
 
     service = module.get<TwoFactorService>(TwoFactorService);
-    
+
     // Get mocked modules
     mockSpeakeasy = speakeasy as jest.Mocked<typeof speakeasy>;
     mockQRCode = QRCode as jest.Mocked<typeof QRCode>;
@@ -38,9 +38,10 @@ describe('TwoFactorService', () => {
       const email = 'test@example.com';
       const mockSecret = {
         base32: 'JBSWY3DPEHPK3PXP',
-        otpauth_url: 'otpauth://totp/Vision-TF%20(test%40example.com)?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF',
+        otpauth_url:
+          'otpauth://totp/Vision-TF%20(test%40example.com)?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF',
       };
-      
+
       mockSpeakeasy.generateSecret.mockReturnValue(mockSecret as any);
 
       // Act
@@ -61,9 +62,10 @@ describe('TwoFactorService', () => {
       const email = 'user@domain.com';
       const mockSecret = {
         base32: 'ABCDEFGHIJKLMNOP',
-        otpauth_url: 'otpauth://totp/Vision-TF%20(user%40domain.com)?secret=ABCDEFGHIJKLMNOP&issuer=Vision-TF',
+        otpauth_url:
+          'otpauth://totp/Vision-TF%20(user%40domain.com)?secret=ABCDEFGHIJKLMNOP&issuer=Vision-TF',
       };
-      
+
       mockSpeakeasy.generateSecret.mockReturnValue(mockSecret as any);
 
       // Act
@@ -83,9 +85,10 @@ describe('TwoFactorService', () => {
       const email = 'test+tag@example.com';
       const mockSecret = {
         base32: 'QRSTUVWXYZ123456',
-        otpauth_url: 'otpauth://totp/Vision-TF%20(test%2Btag%40example.com)?secret=QRSTUVWXYZ123456&issuer=Vision-TF',
+        otpauth_url:
+          'otpauth://totp/Vision-TF%20(test%2Btag%40example.com)?secret=QRSTUVWXYZ123456&issuer=Vision-TF',
       };
-      
+
       mockSpeakeasy.generateSecret.mockReturnValue(mockSecret as any);
 
       // Act
@@ -104,9 +107,11 @@ describe('TwoFactorService', () => {
   describe('generateQRCode', () => {
     it('should generate QR code successfully', async () => {
       // Arrange
-      const otpauthUrl = 'otpauth://totp/Vision-TF%20(test%40example.com)?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF';
-      const expectedQRCode = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-      
+      const otpauthUrl =
+        'otpauth://totp/Vision-TF%20(test%40example.com)?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF';
+      const expectedQRCode =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
       mockQRCode.toDataURL.mockResolvedValue(expectedQRCode);
 
       // Act
@@ -123,7 +128,9 @@ describe('TwoFactorService', () => {
       mockQRCode.toDataURL.mockRejectedValue(new Error('QR generation failed'));
 
       // Act & Assert
-      await expect(service.generateQRCode(otpauthUrl)).rejects.toThrow('Failed to generate QR code');
+      await expect(service.generateQRCode(otpauthUrl)).rejects.toThrow(
+        'Failed to generate QR code',
+      );
       expect(mockQRCode.toDataURL).toHaveBeenCalledWith(otpauthUrl);
     });
 
@@ -131,7 +138,7 @@ describe('TwoFactorService', () => {
       // Arrange
       const otpauthUrl = '';
       const expectedQRCode = 'data:image/png;base64,empty';
-      
+
       mockQRCode.toDataURL.mockResolvedValue(expectedQRCode);
 
       // Act
@@ -148,7 +155,7 @@ describe('TwoFactorService', () => {
       // Arrange
       const token = '123456';
       const secret = 'JBSWY3DPEHPK3PXP';
-      
+
       mockSpeakeasy.totp.verify.mockReturnValue(true);
 
       // Act
@@ -168,7 +175,7 @@ describe('TwoFactorService', () => {
       // Arrange
       const token = '000000';
       const secret = 'JBSWY3DPEHPK3PXP';
-      
+
       mockSpeakeasy.totp.verify.mockReturnValue(false);
 
       // Act
@@ -188,7 +195,7 @@ describe('TwoFactorService', () => {
       // Arrange
       const token = '123456';
       const secret = 'ABCDEFGHIJKLMNOP';
-      
+
       mockSpeakeasy.totp.verify.mockReturnValue(true);
 
       // Act
@@ -208,7 +215,7 @@ describe('TwoFactorService', () => {
       // Arrange
       const token = '';
       const secret = 'JBSWY3DPEHPK3PXP';
-      
+
       mockSpeakeasy.totp.verify.mockReturnValue(false);
 
       // Act
@@ -228,7 +235,8 @@ describe('TwoFactorService', () => {
   describe('generateBackupCodes', () => {
     it('should generate 10 backup codes', () => {
       // Arrange
-      const mockRandomBytes = jest.fn()
+      const mockRandomBytes = jest
+        .fn()
         .mockReturnValueOnce(Buffer.from([0xab, 0xcd, 0x12, 0x34]))
         .mockReturnValueOnce(Buffer.from([0xef, 0x56, 0x78, 0x9a]))
         .mockReturnValueOnce(Buffer.from([0xbc, 0xde, 0xf0, 0x12]))
@@ -249,16 +257,17 @@ describe('TwoFactorService', () => {
       expect(result).toHaveLength(10);
       expect(mockCrypto.randomBytes).toHaveBeenCalledTimes(10);
       expect(mockCrypto.randomBytes).toHaveBeenCalledWith(4);
-      
+
       // Check that all codes are uppercase hex strings
-      result.forEach(code => {
+      result.forEach((code) => {
         expect(code).toMatch(/^[A-F0-9]{8}$/);
       });
     });
 
     it('should generate unique backup codes', () => {
       // Arrange
-      const mockRandomBytes = jest.fn()
+      const mockRandomBytes = jest
+        .fn()
         .mockReturnValueOnce(Buffer.from([0xab, 0xcd, 0x12, 0x34]))
         .mockReturnValueOnce(Buffer.from([0xef, 0x56, 0x78, 0x9a]))
         .mockReturnValueOnce(Buffer.from([0xbc, 0xde, 0xf0, 0x12]))
@@ -370,4 +379,4 @@ describe('TwoFactorService', () => {
       expect(backupCodes).toEqual(['ABCD1234', 'EFGH5678']);
     });
   });
-}); 
+});

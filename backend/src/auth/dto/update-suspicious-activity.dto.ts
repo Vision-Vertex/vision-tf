@@ -20,4 +20,4 @@ export class UpdateSuspiciousActivityDto {
   @IsOptional()
   @IsString()
   reviewNotes?: string;
-} 
+}

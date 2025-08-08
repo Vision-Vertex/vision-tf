@@ -40,15 +40,26 @@ describe('Roles Decorator', () => {
       const decorator = Roles(UserRole.ADMIN, UserRole.DEVELOPER);
 
       // Assert
-      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [UserRole.ADMIN, UserRole.DEVELOPER]);
+      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+      ]);
     });
 
     it('should create metadata with all roles', () => {
       // Act
-      const decorator = Roles(UserRole.CLIENT, UserRole.DEVELOPER, UserRole.ADMIN);
+      const decorator = Roles(
+        UserRole.CLIENT,
+        UserRole.DEVELOPER,
+        UserRole.ADMIN,
+      );
 
       // Assert
-      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [UserRole.CLIENT, UserRole.DEVELOPER, UserRole.ADMIN]);
+      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [
+        UserRole.CLIENT,
+        UserRole.DEVELOPER,
+        UserRole.ADMIN,
+      ]);
     });
 
     it('should create metadata with empty roles array', () => {
@@ -61,10 +72,18 @@ describe('Roles Decorator', () => {
 
     it('should handle duplicate roles', () => {
       // Act
-      const decorator = Roles(UserRole.ADMIN, UserRole.ADMIN, UserRole.DEVELOPER);
+      const decorator = Roles(
+        UserRole.ADMIN,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+      );
 
       // Assert
-      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [UserRole.ADMIN, UserRole.ADMIN, UserRole.DEVELOPER]);
+      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [
+        UserRole.ADMIN,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+      ]);
     });
 
     it('should handle different role combinations', () => {
@@ -129,10 +148,18 @@ describe('Roles Decorator', () => {
 
     it('should handle mixed valid and invalid roles', () => {
       // Act
-      const decorator = Roles(UserRole.ADMIN, 'INVALID_ROLE' as any, UserRole.DEVELOPER);
+      const decorator = Roles(
+        UserRole.ADMIN,
+        'INVALID_ROLE' as any,
+        UserRole.DEVELOPER,
+      );
 
       // Assert
-      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [UserRole.ADMIN, 'INVALID_ROLE', UserRole.DEVELOPER]);
+      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [
+        UserRole.ADMIN,
+        'INVALID_ROLE',
+        UserRole.DEVELOPER,
+      ]);
     });
   });
 
@@ -146,7 +173,10 @@ describe('Roles Decorator', () => {
       const decorator = Roles(UserRole.ADMIN, UserRole.DEVELOPER);
 
       // Assert
-      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [UserRole.ADMIN, UserRole.DEVELOPER]);
+      expect(mockSetMetadata).toHaveBeenCalledWith(ROLES_KEY, [
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+      ]);
       expect(decorator).toBe(mockDecorator);
     });
   });
@@ -233,4 +263,4 @@ describe('Roles Decorator', () => {
       expect(mockSetMetadata).toHaveBeenCalledTimes(1000);
     });
   });
-}); 
+});

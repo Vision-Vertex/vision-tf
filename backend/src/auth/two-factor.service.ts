@@ -13,7 +13,7 @@ export class TwoFactorService {
     });
 
     return {
-      secret: secret.base32!,
+      secret: secret.base32,
       qrCodeUrl: secret.otpauth_url!,
     };
   }
@@ -46,9 +46,9 @@ export class TwoFactorService {
   verifyBackupCode(code: string, backupCodes: string[]): boolean {
     const index = backupCodes.indexOf(code);
     if (index === -1) return false;
-    
+
     // Remove used backup code
     backupCodes.splice(index, 1);
     return true;
   }
-} 
+}

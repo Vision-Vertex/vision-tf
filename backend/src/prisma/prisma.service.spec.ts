@@ -144,7 +144,9 @@ describe('PrismaService', () => {
       mockPrismaClient.$connect.mockRejectedValue(connectionError);
 
       // Act & Assert
-      await expect(service.onModuleInit()).rejects.toThrow('Database connection failed');
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Database connection failed',
+      );
       expect(mockPrismaClient.$connect).toHaveBeenCalledTimes(1);
     });
 
@@ -154,7 +156,9 @@ describe('PrismaService', () => {
       mockPrismaClient.$connect.mockRejectedValue(timeoutError);
 
       // Act & Assert
-      await expect(service.onModuleInit()).rejects.toThrow('Connection timeout');
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Connection timeout',
+      );
       expect(mockPrismaClient.$connect).toHaveBeenCalledTimes(1);
     });
 
@@ -188,7 +192,9 @@ describe('PrismaService', () => {
       mockPrismaClient.$disconnect.mockRejectedValue(disconnectionError);
 
       // Act & Assert
-      await expect(service.onModuleDestroy()).rejects.toThrow('Database disconnection failed');
+      await expect(service.onModuleDestroy()).rejects.toThrow(
+        'Database disconnection failed',
+      );
       expect(mockPrismaClient.$disconnect).toHaveBeenCalledTimes(1);
     });
 
@@ -198,7 +204,9 @@ describe('PrismaService', () => {
       mockPrismaClient.$disconnect.mockRejectedValue(timeoutError);
 
       // Act & Assert
-      await expect(service.onModuleDestroy()).rejects.toThrow('Disconnection timeout');
+      await expect(service.onModuleDestroy()).rejects.toThrow(
+        'Disconnection timeout',
+      );
       expect(mockPrismaClient.$disconnect).toHaveBeenCalledTimes(1);
     });
   });
@@ -214,7 +222,9 @@ describe('PrismaService', () => {
 
       // Assert
       expect(result).toEqual(mockUser);
-      expect(mockPrismaClient.user.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrismaClient.user.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should handle session operations', async () => {
@@ -227,59 +237,83 @@ describe('PrismaService', () => {
 
       // Assert
       expect(result).toEqual(mockSession);
-      expect(mockPrismaClient.session.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrismaClient.session.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should handle refresh token operations', async () => {
       // Arrange
       const mockRefreshToken = { id: '1', token: 'refresh123' };
-      mockPrismaClient.refreshToken.findUnique.mockResolvedValue(mockRefreshToken as any);
+      mockPrismaClient.refreshToken.findUnique.mockResolvedValue(
+        mockRefreshToken as any,
+      );
 
       // Act
-      const result = await service.refreshToken.findUnique({ where: { id: '1' } });
+      const result = await service.refreshToken.findUnique({
+        where: { id: '1' },
+      });
 
       // Assert
       expect(result).toEqual(mockRefreshToken);
-      expect(mockPrismaClient.refreshToken.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrismaClient.refreshToken.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should handle audit log operations', async () => {
       // Arrange
       const mockAuditLog = { id: '1', eventType: 'USER_LOGIN' };
-      mockPrismaClient.auditLog.findUnique.mockResolvedValue(mockAuditLog as any);
+      mockPrismaClient.auditLog.findUnique.mockResolvedValue(
+        mockAuditLog as any,
+      );
 
       // Act
       const result = await service.auditLog.findUnique({ where: { id: '1' } });
 
       // Assert
       expect(result).toEqual(mockAuditLog);
-      expect(mockPrismaClient.auditLog.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrismaClient.auditLog.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should handle suspicious activity operations', async () => {
       // Arrange
       const mockSuspiciousActivity = { id: '1', activityType: 'BRUTE_FORCE' };
-      mockPrismaClient.suspiciousActivity.findUnique.mockResolvedValue(mockSuspiciousActivity as any);
+      mockPrismaClient.suspiciousActivity.findUnique.mockResolvedValue(
+        mockSuspiciousActivity as any,
+      );
 
       // Act
-      const result = await service.suspiciousActivity.findUnique({ where: { id: '1' } });
+      const result = await service.suspiciousActivity.findUnique({
+        where: { id: '1' },
+      });
 
       // Assert
       expect(result).toEqual(mockSuspiciousActivity);
-      expect(mockPrismaClient.suspiciousActivity.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(
+        mockPrismaClient.suspiciousActivity.findUnique,
+      ).toHaveBeenCalledWith({ where: { id: '1' } });
     });
 
     it('should handle login pattern operations', async () => {
       // Arrange
       const mockLoginPattern = { id: '1', ipAddress: '192.168.1.1' };
-      mockPrismaClient.loginPattern.findUnique.mockResolvedValue(mockLoginPattern as any);
+      mockPrismaClient.loginPattern.findUnique.mockResolvedValue(
+        mockLoginPattern as any,
+      );
 
       // Act
-      const result = await service.loginPattern.findUnique({ where: { id: '1' } });
+      const result = await service.loginPattern.findUnique({
+        where: { id: '1' },
+      });
 
       // Assert
       expect(result).toEqual(mockLoginPattern);
-      expect(mockPrismaClient.loginPattern.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrismaClient.loginPattern.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
   });
 
@@ -309,7 +343,7 @@ describe('PrismaService', () => {
       await expect(
         service.$transaction([
           service.user.create({ data: { email: 'test@example.com' } }),
-        ])
+        ]),
       ).rejects.toThrow('Transaction failed');
       expect(mockPrismaClient.$transaction).toHaveBeenCalledTimes(1);
     });
@@ -324,7 +358,7 @@ describe('PrismaService', () => {
         service.$transaction([
           service.user.create({ data: { email: 'test@example.com' } }),
           service.session.create({ data: { sessionToken: 'token123' } }),
-        ])
+        ]),
       ).rejects.toThrow('Rollback occurred');
       expect(mockPrismaClient.$transaction).toHaveBeenCalledTimes(1);
     });
@@ -409,7 +443,7 @@ describe('PrismaService', () => {
         service.user.update({
           where: { id: 'nonexistent' },
           data: { email: 'new@example.com' },
-        })
+        }),
       ).rejects.toThrow('Record to update not found');
     });
 
@@ -423,7 +457,7 @@ describe('PrismaService', () => {
       await expect(
         service.user.create({
           data: { invalidField: 'value' } as any,
-        })
+        }),
       ).rejects.toThrow('Invalid argument provided');
     });
 
@@ -434,7 +468,9 @@ describe('PrismaService', () => {
       mockPrismaClient.$connect.mockRejectedValue(initError);
 
       // Act & Assert
-      await expect(service.onModuleInit()).rejects.toThrow('Failed to initialize Prisma Client');
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Failed to initialize Prisma Client',
+      );
     });
   });
 
@@ -446,7 +482,9 @@ describe('PrismaService', () => {
         .mockResolvedValueOnce(undefined);
 
       // Act & Assert
-      await expect(service.onModuleInit()).rejects.toThrow('First attempt failed');
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'First attempt failed',
+      );
       expect(mockPrismaClient.$connect).toHaveBeenCalledTimes(1);
 
       // Second attempt

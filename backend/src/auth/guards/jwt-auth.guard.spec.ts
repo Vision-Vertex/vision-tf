@@ -28,9 +28,11 @@ describe('JwtAuthGuard', () => {
               const parts = authHeader.trim().split(/\s+/);
               const bearer = parts[0];
               const token = parts[1];
-              
+
               if (bearer.toLowerCase() !== 'bearer' || !token) {
-                throw new UnauthorizedException('Invalid authorization header format');
+                throw new UnauthorizedException(
+                  'Invalid authorization header format',
+                );
               }
 
               if (token === 'valid-token') {
@@ -107,7 +109,9 @@ describe('JwtAuthGuard', () => {
       } as ExecutionContext;
 
       // Act & Assert
-      await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
+      await expect(guard.canActivate(mockContext)).rejects.toThrow(
+        UnauthorizedException,
+      );
       // JWT verification is handled by the mocked AuthGuard
     });
 
@@ -125,7 +129,9 @@ describe('JwtAuthGuard', () => {
       } as ExecutionContext;
 
       // Act & Assert
-      await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
+      await expect(guard.canActivate(mockContext)).rejects.toThrow(
+        UnauthorizedException,
+      );
       // JWT verification is handled by the mocked AuthGuard
     });
 
@@ -147,7 +153,9 @@ describe('JwtAuthGuard', () => {
       });
 
       // Act & Assert
-      await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
+      await expect(guard.canActivate(mockContext)).rejects.toThrow(
+        UnauthorizedException,
+      );
       // JWT verification is handled by the mocked AuthGuard
     });
 
@@ -169,7 +177,9 @@ describe('JwtAuthGuard', () => {
       });
 
       // Act & Assert
-      await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
+      await expect(guard.canActivate(mockContext)).rejects.toThrow(
+        UnauthorizedException,
+      );
       // JWT verification is handled by the mocked AuthGuard
     });
 
@@ -215,4 +225,4 @@ describe('JwtAuthGuard', () => {
       // JWT verification is handled by the mocked AuthGuard
     });
   });
-}); 
+});

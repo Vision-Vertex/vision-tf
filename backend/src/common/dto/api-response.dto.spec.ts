@@ -1,7 +1,7 @@
-import { 
-  SuccessResponse, 
-  ErrorResponse, 
-  CreatedResponse, 
+import {
+  SuccessResponse,
+  ErrorResponse,
+  CreatedResponse,
   PaginatedResponse,
   AuthResponse,
   TwoFactorSetupResponse,
@@ -9,7 +9,7 @@ import {
   UserProfile,
   AuditLogEntry,
   SuspiciousActivity,
-  LoginPattern
+  LoginPattern,
 } from './api-response.dto';
 
 describe('API Response DTOs', () => {
@@ -49,7 +49,11 @@ describe('API Response DTOs', () => {
       const path = '/api/v1/users';
 
       // Act
-      const response = new SuccessResponse('User created successfully', data, path);
+      const response = new SuccessResponse(
+        'User created successfully',
+        data,
+        path,
+      );
 
       // Assert
       expect(response.success).toBe(true);
@@ -65,7 +69,9 @@ describe('API Response DTOs', () => {
       const response = new SuccessResponse('Test message');
 
       // Assert
-      expect(response.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(response.timestamp).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
     });
   });
 
@@ -105,7 +111,11 @@ describe('API Response DTOs', () => {
       const path = '/api/v1/users';
 
       // Act
-      const response = new CreatedResponse('User created successfully', data, path);
+      const response = new CreatedResponse(
+        'User created successfully',
+        data,
+        path,
+      );
 
       // Assert
       expect(response.success).toBe(true);
@@ -135,7 +145,11 @@ describe('API Response DTOs', () => {
 
     it('should create an error response with error code', () => {
       // Arrange & Act
-      const response = new ErrorResponse(400, 'Bad Request', 'VALIDATION_ERROR');
+      const response = new ErrorResponse(
+        400,
+        'Bad Request',
+        'VALIDATION_ERROR',
+      );
 
       // Assert
       expect(response.success).toBe(false);
@@ -152,7 +166,12 @@ describe('API Response DTOs', () => {
       const details = { field: 'email', reason: 'Invalid format' };
 
       // Act
-      const response = new ErrorResponse(400, 'Bad Request', 'VALIDATION_ERROR', details);
+      const response = new ErrorResponse(
+        400,
+        'Bad Request',
+        'VALIDATION_ERROR',
+        details,
+      );
 
       // Assert
       expect(response.success).toBe(false);
@@ -169,7 +188,13 @@ describe('API Response DTOs', () => {
       const path = '/api/v1/users';
 
       // Act
-      const response = new ErrorResponse(400, 'Bad Request', 'VALIDATION_ERROR', undefined, path);
+      const response = new ErrorResponse(
+        400,
+        'Bad Request',
+        'VALIDATION_ERROR',
+        undefined,
+        path,
+      );
 
       // Assert
       expect(response.success).toBe(false);
@@ -215,7 +240,11 @@ describe('API Response DTOs', () => {
       };
 
       // Act
-      const response = new PaginatedResponse('Users retrieved successfully', data, pagination);
+      const response = new PaginatedResponse(
+        'Users retrieved successfully',
+        data,
+        pagination,
+      );
 
       // Assert
       expect(response.success).toBe(true);
@@ -241,7 +270,12 @@ describe('API Response DTOs', () => {
       const path = '/api/v1/users';
 
       // Act
-      const response = new PaginatedResponse('Users retrieved successfully', data, pagination, path);
+      const response = new PaginatedResponse(
+        'Users retrieved successfully',
+        data,
+        pagination,
+        path,
+      );
 
       // Assert
       expect(response.success).toBe(true);
@@ -266,7 +300,11 @@ describe('API Response DTOs', () => {
       };
 
       // Act
-      const response = new PaginatedResponse('No users found', data, pagination);
+      const response = new PaginatedResponse(
+        'No users found',
+        data,
+        pagination,
+      );
 
       // Assert
       expect(response.success).toBe(true);
@@ -289,7 +327,11 @@ describe('API Response DTOs', () => {
       };
 
       // Act
-      const response = new PaginatedResponse('User retrieved successfully', data, pagination);
+      const response = new PaginatedResponse(
+        'User retrieved successfully',
+        data,
+        pagination,
+      );
 
       // Assert
       expect(response.pagination.hasNext).toBe(false);
@@ -310,7 +352,11 @@ describe('API Response DTOs', () => {
       };
 
       // Act
-      const response = new PaginatedResponse('Users retrieved successfully', data, pagination);
+      const response = new PaginatedResponse(
+        'Users retrieved successfully',
+        data,
+        pagination,
+      );
 
       // Assert
       expect(response.pagination.hasNext).toBe(true);
@@ -381,17 +427,30 @@ describe('API Response DTOs', () => {
       // Arrange
       const twoFactorResponse = new TwoFactorSetupResponse();
       twoFactorResponse.secret = 'JBSWY3DPEHPK3PXP';
-      twoFactorResponse.qrCodeUrl = 'otpauth://totp/Vision-TF?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF';
-      twoFactorResponse.qrCode = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+      twoFactorResponse.qrCodeUrl =
+        'otpauth://totp/Vision-TF?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF';
+      twoFactorResponse.qrCode =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
       twoFactorResponse.backupCodes = ['ABCD1234', 'EFGH5678', 'IJKL9012'];
-      twoFactorResponse.instructions = 'Scan the QR code with your authenticator app';
+      twoFactorResponse.instructions =
+        'Scan the QR code with your authenticator app';
 
       // Assert
       expect(twoFactorResponse.secret).toBe('JBSWY3DPEHPK3PXP');
-      expect(twoFactorResponse.qrCodeUrl).toBe('otpauth://totp/Vision-TF?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF');
-      expect(twoFactorResponse.qrCode).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
-      expect(twoFactorResponse.backupCodes).toEqual(['ABCD1234', 'EFGH5678', 'IJKL9012']);
-      expect(twoFactorResponse.instructions).toBe('Scan the QR code with your authenticator app');
+      expect(twoFactorResponse.qrCodeUrl).toBe(
+        'otpauth://totp/Vision-TF?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF',
+      );
+      expect(twoFactorResponse.qrCode).toBe(
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+      );
+      expect(twoFactorResponse.backupCodes).toEqual([
+        'ABCD1234',
+        'EFGH5678',
+        'IJKL9012',
+      ]);
+      expect(twoFactorResponse.instructions).toBe(
+        'Scan the QR code with your authenticator app',
+      );
     });
   });
 
@@ -402,7 +461,8 @@ describe('API Response DTOs', () => {
       sessionInfo.sessionToken = 'session-token-123';
       sessionInfo.deviceName = 'Chrome Browser';
       sessionInfo.ipAddress = '192.168.1.1';
-      sessionInfo.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+      sessionInfo.userAgent =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
       sessionInfo.createdAt = '2025-08-07T10:00:00.000Z';
       sessionInfo.expiresAt = '2025-08-08T10:00:00.000Z';
       sessionInfo.lastActivityAt = '2025-08-07T14:00:00.000Z';
@@ -412,7 +472,9 @@ describe('API Response DTOs', () => {
       expect(sessionInfo.sessionToken).toBe('session-token-123');
       expect(sessionInfo.deviceName).toBe('Chrome Browser');
       expect(sessionInfo.ipAddress).toBe('192.168.1.1');
-      expect(sessionInfo.userAgent).toBe('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      expect(sessionInfo.userAgent).toBe(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      );
       expect(sessionInfo.createdAt).toBe('2025-08-07T10:00:00.000Z');
       expect(sessionInfo.expiresAt).toBe('2025-08-08T10:00:00.000Z');
       expect(sessionInfo.lastActivityAt).toBe('2025-08-07T14:00:00.000Z');
@@ -484,7 +546,8 @@ describe('API Response DTOs', () => {
       auditLogEntry.description = 'User logged in successfully';
       auditLogEntry.details = { ipAddress: '192.168.1.1', userAgent: 'Chrome' };
       auditLogEntry.ipAddress = '192.168.1.1';
-      auditLogEntry.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+      auditLogEntry.userAgent =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
       auditLogEntry.severity = 'INFO';
       auditLogEntry.createdAt = '2025-08-07T14:00:00.000Z';
 
@@ -494,9 +557,14 @@ describe('API Response DTOs', () => {
       expect(auditLogEntry.eventType).toBe('USER_LOGIN');
       expect(auditLogEntry.eventCategory).toBe('AUTHENTICATION');
       expect(auditLogEntry.description).toBe('User logged in successfully');
-      expect(auditLogEntry.details).toEqual({ ipAddress: '192.168.1.1', userAgent: 'Chrome' });
+      expect(auditLogEntry.details).toEqual({
+        ipAddress: '192.168.1.1',
+        userAgent: 'Chrome',
+      });
       expect(auditLogEntry.ipAddress).toBe('192.168.1.1');
-      expect(auditLogEntry.userAgent).toBe('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      expect(auditLogEntry.userAgent).toBe(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      );
       expect(auditLogEntry.severity).toBe('INFO');
       expect(auditLogEntry.createdAt).toBe('2025-08-07T14:00:00.000Z');
     });
@@ -525,7 +593,8 @@ describe('API Response DTOs', () => {
       suspiciousActivity.id = 'activity-123';
       suspiciousActivity.activityType = 'BRUTE_FORCE_ATTEMPT';
       suspiciousActivity.severity = 'HIGH';
-      suspiciousActivity.description = 'Multiple failed login attempts detected';
+      suspiciousActivity.description =
+        'Multiple failed login attempts detected';
       suspiciousActivity.details = { attempts: 10, timeWindow: '5 minutes' };
       suspiciousActivity.ipAddress = '192.168.1.1';
       suspiciousActivity.riskScore = 85;
@@ -538,14 +607,21 @@ describe('API Response DTOs', () => {
       expect(suspiciousActivity.id).toBe('activity-123');
       expect(suspiciousActivity.activityType).toBe('BRUTE_FORCE_ATTEMPT');
       expect(suspiciousActivity.severity).toBe('HIGH');
-      expect(suspiciousActivity.description).toBe('Multiple failed login attempts detected');
-      expect(suspiciousActivity.details).toEqual({ attempts: 10, timeWindow: '5 minutes' });
+      expect(suspiciousActivity.description).toBe(
+        'Multiple failed login attempts detected',
+      );
+      expect(suspiciousActivity.details).toEqual({
+        attempts: 10,
+        timeWindow: '5 minutes',
+      });
       expect(suspiciousActivity.ipAddress).toBe('192.168.1.1');
       expect(suspiciousActivity.riskScore).toBe(85);
       expect(suspiciousActivity.confidence).toBe(0.95);
       expect(suspiciousActivity.status).toBe('DETECTED');
       expect(suspiciousActivity.detectedAt).toBe('2025-08-07T14:00:00.000Z');
-      expect(suspiciousActivity.reviewNotes).toBe('Automatically flagged for review');
+      expect(suspiciousActivity.reviewNotes).toBe(
+        'Automatically flagged for review',
+      );
     });
 
     it('should handle optional fields', () => {
@@ -575,7 +651,8 @@ describe('API Response DTOs', () => {
       loginPattern.id = 'pattern-123';
       loginPattern.userId = 'user-123';
       loginPattern.ipAddress = '192.168.1.1';
-      loginPattern.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+      loginPattern.userAgent =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
       loginPattern.loginCount = 15;
       loginPattern.firstSeenAt = '2025-08-01T10:00:00.000Z';
       loginPattern.lastSeenAt = '2025-08-07T14:00:00.000Z';
@@ -586,7 +663,9 @@ describe('API Response DTOs', () => {
       expect(loginPattern.id).toBe('pattern-123');
       expect(loginPattern.userId).toBe('user-123');
       expect(loginPattern.ipAddress).toBe('192.168.1.1');
-      expect(loginPattern.userAgent).toBe('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      expect(loginPattern.userAgent).toBe(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      );
       expect(loginPattern.loginCount).toBe(15);
       expect(loginPattern.firstSeenAt).toBe('2025-08-01T10:00:00.000Z');
       expect(loginPattern.lastSeenAt).toBe('2025-08-07T14:00:00.000Z');
@@ -605,7 +684,11 @@ describe('API Response DTOs', () => {
       loginPattern.firstSeenAt = '2025-08-07T10:00:00.000Z';
       loginPattern.lastSeenAt = '2025-08-07T14:00:00.000Z';
       loginPattern.isSuspicious = true;
-      loginPattern.riskFactors = ['new_ip', 'unknown_user_agent', 'unusual_time'];
+      loginPattern.riskFactors = [
+        'new_ip',
+        'unknown_user_agent',
+        'unusual_time',
+      ];
 
       // Assert
       expect(loginPattern.isSuspicious).toBe(true);
@@ -614,4 +697,4 @@ describe('API Response DTOs', () => {
       expect(loginPattern.riskFactors).toContain('unusual_time');
     });
   });
-}); 
+});

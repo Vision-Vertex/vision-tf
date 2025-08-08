@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { 
-  SuspiciousActivityType, 
-  SuspiciousActivitySeverity, 
-  SuspiciousActivityStatus 
+import {
+  SuspiciousActivityType,
+  SuspiciousActivitySeverity,
+  SuspiciousActivityStatus,
 } from '@prisma/client';
 
 export interface LoginContext {
@@ -45,7 +45,9 @@ export class SuspiciousActivityService {
     private auditService: AuditService,
   ) {}
 
-  async analyzeLoginActivity(loginContext: LoginContext): Promise<RiskAssessment> {
+  async analyzeLoginActivity(
+    loginContext: LoginContext,
+  ): Promise<RiskAssessment> {
     const riskFactors: string[] = [];
     let riskScore = 0;
     let confidence = 0.0;
@@ -53,8 +55,9 @@ export class SuspiciousActivityService {
     // Get user's login patterns
     const userPatterns = await this.getUserLoginPatterns(loginContext.userId);
     const existingPattern = userPatterns.find(
-      pattern => pattern.ipAddress === loginContext.ipAddress && 
-                 pattern.userAgent === loginContext.userAgent
+      (pattern) =>
+        pattern.ipAddress === loginContext.ipAddress &&
+        pattern.userAgent === loginContext.userAgent,
     );
 
     // Check for unusual login time
@@ -66,7 +69,10 @@ export class SuspiciousActivityService {
     }
 
     // Check for unusual location
-    const unusualLocationRisk = await this.checkUnusualLocation(loginContext, userPatterns);
+    const unusualLocationRisk = await this.checkUnusualLocation(
+      loginContext,
+      userPatterns,
+    );
     if (unusualLocationRisk > 0) {
       riskFactors.push('UNUSUAL_LOCATION');
       riskScore += unusualLocationRisk;
@@ -74,7 +80,10 @@ export class SuspiciousActivityService {
     }
 
     // Check for unusual device
-    const unusualDeviceRisk = await this.checkUnusualDevice(loginContext, userPatterns);
+    const unusualDeviceRisk = await this.checkUnusualDevice(
+      loginContext,
+      userPatterns,
+    );
     if (unusualDeviceRisk > 0) {
       riskFactors.push('UNUSUAL_DEVICE');
       riskScore += unusualDeviceRisk;
@@ -104,7 +113,10 @@ export class SuspiciousActivityService {
     riskScore = Math.min(riskScore, 100);
     confidence = Math.min(confidence, 1.0);
 
-    const recommendations = this.generateRecommendations(riskFactors, riskScore);
+    const recommendations = this.generateRecommendations(
+      riskFactors,
+      riskScore,
+    );
 
     return {
       riskScore,
@@ -114,12 +126,14 @@ export class SuspiciousActivityService {
     };
   }
 
-  private async checkUnusualLoginTime(loginContext: LoginContext): Promise<number> {
+  private async checkUnusualLoginTime(
+    loginContext: LoginContext,
+  ): Promise<number> {
     const hour = loginContext.timestamp.getHours();
-    
+
     // Define normal login hours (6 AM to 10 PM)
     const isNormalHour = hour >= 6 && hour <= 22;
-    
+
     if (!isNormalHour) {
       // Higher risk for very late night/early morning logins
       if (hour >= 23 || hour <= 5) {
@@ -127,27 +141,32 @@ export class SuspiciousActivityService {
       }
       return 15;
     }
-    
+
     return 0;
   }
 
-  private async checkUnusualLocation(loginContext: LoginContext, userPatterns: any[]): Promise<number> {
+  private async checkUnusualLocation(
+    loginContext: LoginContext,
+    userPatterns: any[],
+  ): Promise<number> {
     if (!loginContext.location || userPatterns.length === 0) {
       return 0;
     }
 
     const knownLocations = userPatterns
-      .map(pattern => pattern.location)
-      .filter(location => location)
-      .map(location => location.toLowerCase());
+      .map((pattern) => pattern.location)
+      .filter((location) => location)
+      .map((location) => location.toLowerCase());
 
     if (knownLocations.length === 0) {
       return 0;
     }
 
     const currentLocation = loginContext.location.toLowerCase();
-    const isKnownLocation = knownLocations.some(location => 
-      location.includes(currentLocation) || currentLocation.includes(location)
+    const isKnownLocation = knownLocations.some(
+      (location) =>
+        location.includes(currentLocation) ||
+        currentLocation.includes(location),
     );
 
     if (!isKnownLocation) {
@@ -157,22 +176,25 @@ export class SuspiciousActivityService {
     return 0;
   }
 
-  private async checkUnusualDevice(loginContext: LoginContext, userPatterns: any[]): Promise<number> {
+  private async checkUnusualDevice(
+    loginContext: LoginContext,
+    userPatterns: any[],
+  ): Promise<number> {
     if (userPatterns.length === 0) {
       return 0;
     }
 
     const knownUserAgents = userPatterns
-      .map(pattern => pattern.userAgent)
-      .filter(ua => ua);
+      .map((pattern) => pattern.userAgent)
+      .filter((ua) => ua);
 
     if (knownUserAgents.length === 0) {
       return 0;
     }
 
     // Simple user agent comparison (in production, use more sophisticated fingerprinting)
-    const isKnownDevice = knownUserAgents.some(ua => 
-      this.similarUserAgent(ua, loginContext.userAgent)
+    const isKnownDevice = knownUserAgents.some((ua) =>
+      this.similarUserAgent(ua, loginContext.userAgent),
     );
 
     if (!isKnownDevice) {
@@ -186,7 +208,7 @@ export class SuspiciousActivityService {
     // Extract browser and OS information for comparison
     const knownBrowser = this.extractBrowser(knownUA);
     const currentBrowser = this.extractBrowser(currentUA);
-    
+
     return knownBrowser === currentBrowser;
   }
 
@@ -198,7 +220,9 @@ export class SuspiciousActivityService {
     return 'Unknown';
   }
 
-  private async checkRapidLoginAttempts(loginContext: LoginContext): Promise<number> {
+  private async checkRapidLoginAttempts(
+    loginContext: LoginContext,
+  ): Promise<number> {
     // Check for multiple login attempts in a short time window
     const recentAttempts = await this.prisma.auditLog.findMany({
       where: {
@@ -221,7 +245,9 @@ export class SuspiciousActivityService {
     return 0;
   }
 
-  private async checkConcurrentLogins(loginContext: LoginContext): Promise<number> {
+  private async checkConcurrentLogins(
+    loginContext: LoginContext,
+  ): Promise<number> {
     // Check for concurrent active sessions
     const activeSessions = await this.prisma.session.findMany({
       where: {
@@ -244,7 +270,10 @@ export class SuspiciousActivityService {
     return 0;
   }
 
-  private async updateLoginPattern(loginContext: LoginContext, existingPattern?: any) {
+  private async updateLoginPattern(
+    loginContext: LoginContext,
+    existingPattern?: any,
+  ) {
     const patternData = {
       userId: loginContext.userId,
       ipAddress: loginContext.ipAddress,
@@ -269,19 +298,28 @@ export class SuspiciousActivityService {
     }
   }
 
-  private generateRecommendations(riskFactors: string[], riskScore: number): string[] {
+  private generateRecommendations(
+    riskFactors: string[],
+    riskScore: number,
+  ): string[] {
     const recommendations: string[] = [];
 
     if (riskFactors.includes('UNUSUAL_LOGIN_TIME')) {
-      recommendations.push('Verify if this login time is expected for the user');
+      recommendations.push(
+        'Verify if this login time is expected for the user',
+      );
     }
 
     if (riskFactors.includes('UNUSUAL_LOCATION')) {
-      recommendations.push('Check if the user is traveling or if this location is legitimate');
+      recommendations.push(
+        'Check if the user is traveling or if this location is legitimate',
+      );
     }
 
     if (riskFactors.includes('UNUSUAL_DEVICE')) {
-      recommendations.push('Verify if the user has a new device or if this is suspicious');
+      recommendations.push(
+        'Verify if the user has a new device or if this is suspicious',
+      );
     }
 
     if (riskFactors.includes('RAPID_LOGIN_ATTEMPTS')) {
@@ -289,15 +327,21 @@ export class SuspiciousActivityService {
     }
 
     if (riskFactors.includes('CONCURRENT_LOGINS')) {
-      recommendations.push('Review active sessions and consider terminating suspicious ones');
+      recommendations.push(
+        'Review active sessions and consider terminating suspicious ones',
+      );
     }
 
     if (riskScore > 50) {
-      recommendations.push('Consider requiring additional authentication (2FA, email verification)');
+      recommendations.push(
+        'Consider requiring additional authentication (2FA, email verification)',
+      );
     }
 
     if (riskScore > 70) {
-      recommendations.push('Immediately investigate and potentially lock the account');
+      recommendations.push(
+        'Immediately investigate and potentially lock the account',
+      );
     }
 
     return recommendations;
@@ -375,10 +419,16 @@ export class SuspiciousActivityService {
           details: {
             failedAttempts: recentFailedAttempts.length,
             timeWindow: '15 minutes',
-            affectedEmails: [...new Set(recentFailedAttempts.map(log => {
-              const details = log.details as any;
-              return details?.email;
-            }).filter(Boolean))],
+            affectedEmails: [
+              ...new Set(
+                recentFailedAttempts
+                  .map((log) => {
+                    const details = log.details as any;
+                    return details?.email;
+                  })
+                  .filter(Boolean),
+              ),
+            ],
           },
           ipAddress,
           riskScore: 85,
@@ -392,10 +442,16 @@ export class SuspiciousActivityService {
         undefined,
         {
           failedAttempts: recentFailedAttempts.length,
-          affectedEmails: [...new Set(recentFailedAttempts.map(log => {
-            const details = log.details as any;
-            return details?.email;
-          }).filter(Boolean))],
+          affectedEmails: [
+            ...new Set(
+              recentFailedAttempts
+                .map((log) => {
+                  const details = log.details as any;
+                  return details?.email;
+                })
+                .filter(Boolean),
+            ),
+          ],
         },
         ipAddress,
       );
@@ -415,7 +471,7 @@ export class SuspiciousActivityService {
 
     // Group by IP address
     const attemptsByIP = new Map<string, any[]>();
-    recentFailedAttempts.forEach(attempt => {
+    recentFailedAttempts.forEach((attempt) => {
       const ip = attempt.ipAddress || 'unknown';
       if (!attemptsByIP.has(ip)) {
         attemptsByIP.set(ip, []);
@@ -425,8 +481,10 @@ export class SuspiciousActivityService {
 
     // Check for password spray patterns
     for (const [ipAddress, attempts] of attemptsByIP) {
-      const uniqueEmails = new Set(attempts.map(attempt => attempt.details?.email).filter(Boolean));
-      
+      const uniqueEmails = new Set(
+        attempts.map((attempt) => attempt.details?.email).filter(Boolean),
+      );
+
       if (uniqueEmails.size >= 5 && attempts.length >= 10) {
         await this.prisma.suspiciousActivity.create({
           data: {
@@ -461,7 +519,12 @@ export class SuspiciousActivityService {
   }
 
   // Query methods
-  async getSuspiciousActivities(userId?: string, status?: SuspiciousActivityStatus, limit: number = 50, offset: number = 0) {
+  async getSuspiciousActivities(
+    userId?: string,
+    status?: SuspiciousActivityStatus,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
     const where: any = {};
     if (userId) where.userId = userId;
     if (status) where.status = status;
@@ -540,7 +603,8 @@ export class SuspiciousActivityService {
       totalActivities,
       criticalActivities,
       unresolvedActivities,
-      criticalPercentage: totalActivities > 0 ? (criticalActivities / totalActivities) * 100 : 0,
+      criticalPercentage:
+        totalActivities > 0 ? (criticalActivities / totalActivities) * 100 : 0,
     };
   }
-} 
+}

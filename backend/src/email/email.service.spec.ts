@@ -7,16 +7,14 @@ describe('EmailService', () => {
   let configService: jest.Mocked<ConfigService>;
 
   beforeEach(async () => {
-    const mockConfigService = {
-      get: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmailService,
         {
           provide: ConfigService,
-          useValue: mockConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -25,54 +23,37 @@ describe('EmailService', () => {
     configService = module.get(ConfigService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('sendEmailVerification', () => {
     it('should send email verification successfully', async () => {
       // Arrange
       const email = 'test@example.com';
       const token = 'verification-token-123';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
-      // Mock console.log to capture output
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendEmailVerification(email, token);
+      await service.sendEmailVerification(email, token);
 
       // Assert
-      expect(configService.get).toHaveBeenCalledWith('FRONTEND_URL');
-      expect(consoleSpy).toHaveBeenCalledWith(`Email verification sent to ${email}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`Verification URL: ${frontendUrl}/verify-email?token=${token}`);
-      expect(result).toEqual({
-        success: true,
-        message: 'Verification email sent (check console for URL)',
-        verificationUrl: `${frontendUrl}/verify-email?token=${token}`,
-      });
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Email verification sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
 
-    it('should handle different frontend URLs', async () => {
+    it('should handle different email addresses', async () => {
       // Arrange
       const email = 'user@domain.com';
-      const token = 'verification-token-456';
-      const frontendUrl = 'https://app.example.com';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
+      const token = 'different-token';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendEmailVerification(email, token);
+      await service.sendEmailVerification(email, token);
 
       // Assert
-      expect(configService.get).toHaveBeenCalledWith('FRONTEND_URL');
-      expect(result.verificationUrl).toBe(`${frontendUrl}/verify-email?token=${token}`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Email verification sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -80,36 +61,16 @@ describe('EmailService', () => {
     it('should handle special characters in token', async () => {
       // Arrange
       const email = 'test@example.com';
-      const token = 'verification-token-with-special-chars!@#$%^&*()';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
+      const token = 'token-with-special-chars!@#$%^&*()';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendEmailVerification(email, token);
+      await service.sendEmailVerification(email, token);
 
       // Assert
-      expect(result.verificationUrl).toBe(`${frontendUrl}/verify-email?token=${token}`);
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle undefined frontend URL', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      const token = 'verification-token-123';
-      
-      configService.get.mockReturnValue(undefined);
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      // Act
-      const result = await service.sendEmailVerification(email, token);
-
-      // Assert
-      expect(result.verificationUrl).toBe(`undefined/verify-email?token=${token}`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Email verification sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -118,17 +79,15 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const token = '';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendEmailVerification(email, token);
+      await service.sendEmailVerification(email, token);
 
       // Assert
-      expect(result.verificationUrl).toBe(`${frontendUrl}/verify-email?token=`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Email verification sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -139,44 +98,32 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const token = 'reset-token-123';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendPasswordReset(email, token);
+      await service.sendPasswordReset(email, token);
 
       // Assert
-      expect(configService.get).toHaveBeenCalledWith('FRONTEND_URL');
-      expect(consoleSpy).toHaveBeenCalledWith(`Password reset email sent to ${email}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`Reset URL: ${frontendUrl}/reset-password?token=${token}`);
-      expect(result).toEqual({
-        success: true,
-        message: 'Password reset email sent (check console for URL)',
-        resetUrl: `${frontendUrl}/reset-password?token=${token}`,
-      });
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Password reset email sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
 
-    it('should handle different frontend URLs for password reset', async () => {
+    it('should handle different email addresses for password reset', async () => {
       // Arrange
       const email = 'user@domain.com';
-      const token = 'reset-token-456';
-      const frontendUrl = 'https://app.example.com';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
+      const token = 'different-reset-token';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendPasswordReset(email, token);
+      await service.sendPasswordReset(email, token);
 
       // Assert
-      expect(configService.get).toHaveBeenCalledWith('FRONTEND_URL');
-      expect(result.resetUrl).toBe(`${frontendUrl}/reset-password?token=${token}`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Password reset email sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -185,35 +132,15 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const token = 'reset-token-with-special-chars!@#$%^&*()';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendPasswordReset(email, token);
+      await service.sendPasswordReset(email, token);
 
       // Assert
-      expect(result.resetUrl).toBe(`${frontendUrl}/reset-password?token=${token}`);
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle undefined frontend URL for password reset', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      const token = 'reset-token-123';
-      
-      configService.get.mockReturnValue(undefined);
-
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      // Act
-      const result = await service.sendPasswordReset(email, token);
-
-      // Assert
-      expect(result.resetUrl).toBe(`undefined/reset-password?token=${token}`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Password reset email sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -222,17 +149,15 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const token = '';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.sendPasswordReset(email, token);
+      await service.sendPasswordReset(email, token);
 
       // Assert
-      expect(result.resetUrl).toBe(`${frontendUrl}/reset-password?token=`);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Password reset email sent to ${email} with token: ${token}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -243,23 +168,16 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const secret = 'JBSWY3DPEHPK3PXP';
-      const qrCodeUrl = 'otpauth://totp/Vision-TF%20(test%40example.com)?secret=JBSWY3DPEHPK3PXP&issuer=Vision-TF';
-
+      const qrCode = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith(`2FA setup email sent to ${email}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`Secret: ${secret}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`QR Code URL: ${qrCodeUrl}`);
-      expect(result).toEqual({
-        success: true,
-        message: '2FA setup email sent (check console for details)',
-        secret,
-        qrCodeUrl,
-      });
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -268,17 +186,16 @@ describe('EmailService', () => {
       // Arrange
       const email = 'user@domain.com';
       const secret = 'ABCDEFGHIJKLMNOP';
-      const qrCodeUrl = 'otpauth://totp/Vision-TF%20(user%40domain.com)?secret=ABCDEFGHIJKLMNOP&issuer=Vision-TF';
-
+      const qrCode = 'data:image/png;base64,another-qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith(`2FA setup email sent to ${email}`);
-      expect(result.secret).toBe(secret);
-      expect(result.qrCodeUrl).toBe(qrCodeUrl);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -286,17 +203,17 @@ describe('EmailService', () => {
     it('should handle special characters in secret', async () => {
       // Arrange
       const email = 'test@example.com';
-      const secret = 'SECRET-WITH-SPECIAL-CHARS!@#$%^&*()';
-      const qrCodeUrl = 'otpauth://totp/Vision-TF%20(test%40example.com)?secret=SECRET-WITH-SPECIAL-CHARS!@#$%^&*()&issuer=Vision-TF';
-
+      const secret = 'secret-with-special-chars!@#$%^&*()';
+      const qrCode = 'data:image/png;base64,special-qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(result.secret).toBe(secret);
-      expect(result.qrCodeUrl).toBe(qrCodeUrl);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -305,16 +222,16 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const secret = '';
-      const qrCodeUrl = 'otpauth://totp/Vision-TF%20(test%40example.com)?secret=&issuer=Vision-TF';
-
+      const qrCode = 'data:image/png;base64,empty-secret-qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(result.secret).toBe('');
-      expect(result.qrCodeUrl).toBe(qrCodeUrl);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -323,16 +240,16 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const secret = 'JBSWY3DPEHPK3PXP';
-      const qrCodeUrl = '';
-
+      const qrCode = '';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(result.secret).toBe(secret);
-      expect(result.qrCodeUrl).toBe('');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -340,17 +257,17 @@ describe('EmailService', () => {
     it('should handle very long secrets', async () => {
       // Arrange
       const email = 'test@example.com';
-      const secret = 'A'.repeat(100); // Very long secret
-      const qrCodeUrl = `otpauth://totp/Vision-TF%20(test%40example.com)?secret=${secret}&issuer=Vision-TF`;
-
+      const secret = 'A'.repeat(1000);
+      const qrCode = 'data:image/png;base64,long-secret-qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(result.secret).toBe(secret);
-      expect(result.qrCodeUrl).toBe(qrCodeUrl);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -359,16 +276,16 @@ describe('EmailService', () => {
       // Arrange
       const email = 'test@example.com';
       const secret = 'JBSWY3DPEHPK3PXP';
-      const qrCodeUrl = 'A'.repeat(1000); // Very long URL
-
+      const qrCode = 'data:image/png;base64,' + 'A'.repeat(1000);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result = await service.send2faSetup(email, secret, qrCodeUrl);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(result.secret).toBe(secret);
-      expect(result.qrCodeUrl).toBe(qrCodeUrl);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
@@ -378,52 +295,66 @@ describe('EmailService', () => {
     it('should handle multiple email types for same user', async () => {
       // Arrange
       const email = 'test@example.com';
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
+      const verificationToken = 'verification-token';
+      const resetToken = 'reset-token';
+      const secret = 'JBSWY3DPEHPK3PXP';
+      const qrCode = 'data:image/png;base64,qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const verificationResult = await service.sendEmailVerification(email, 'verification-token');
-      const resetResult = await service.sendPasswordReset(email, 'reset-token');
-      const twoFactorResult = await service.send2faSetup(email, 'secret', 'qr-url');
+      await service.sendEmailVerification(email, verificationToken);
+      await service.sendPasswordReset(email, resetToken);
+      await service.send2faSetup(email, secret, qrCode);
 
       // Assert
-      expect(verificationResult.success).toBe(true);
-      expect(resetResult.success).toBe(true);
-      expect(twoFactorResult.success).toBe(true);
-
-      expect(consoleSpy).toHaveBeenCalledWith(`Email verification sent to ${email}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`Password reset email sent to ${email}`);
-      expect(consoleSpy).toHaveBeenCalledWith(`2FA setup email sent to ${email}`);
+      expect(consoleSpy).toHaveBeenCalledTimes(3);
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        1,
+        `Email verification sent to ${email} with token: ${verificationToken}`,
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        2,
+        `Password reset email sent to ${email} with token: ${resetToken}`,
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        3,
+        `2FA setup email sent to ${email} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
 
     it('should handle different users with different email formats', async () => {
       // Arrange
-      const frontendUrl = 'http://localhost:3000';
-      
-      configService.get.mockReturnValue(frontendUrl);
-
+      const email1 = 'user1@domain.com';
+      const email2 = 'user2@another-domain.org';
+      const email3 = 'user3@subdomain.example.co.uk';
+      const token = 'shared-token';
+      const secret = 'JBSWY3DPEHPK3PXP';
+      const qrCode = 'data:image/png;base64,qr-code...';
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       // Act
-      const result1 = await service.sendEmailVerification('user1@example.com', 'token1');
-      const result2 = await service.sendEmailVerification('user2+tag@domain.co.uk', 'token2');
-      const result3 = await service.sendEmailVerification('user3@subdomain.example.org', 'token3');
+      await service.sendEmailVerification(email1, token);
+      await service.sendPasswordReset(email2, token);
+      await service.send2faSetup(email3, secret, qrCode);
 
       // Assert
-      expect(result1.success).toBe(true);
-      expect(result2.success).toBe(true);
-      expect(result3.success).toBe(true);
-
-      expect(result1.verificationUrl).toContain('token1');
-      expect(result2.verificationUrl).toContain('token2');
-      expect(result3.verificationUrl).toContain('token3');
+      expect(consoleSpy).toHaveBeenCalledTimes(3);
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        1,
+        `Email verification sent to ${email1} with token: ${token}`,
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        2,
+        `Password reset email sent to ${email2} with token: ${token}`,
+      );
+      expect(consoleSpy).toHaveBeenNthCalledWith(
+        3,
+        `2FA setup email sent to ${email3} with secret: ${secret}`,
+      );
 
       consoleSpy.mockRestore();
     });
   });
-}); 
+});

@@ -8,7 +8,12 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Request } from 'express';
-import { BaseApiResponse, SuccessResponse, CreatedResponse, PaginatedResponse } from '../dto/api-response.dto';
+import {
+  BaseApiResponse,
+  SuccessResponse,
+  CreatedResponse,
+  PaginatedResponse,
+} from '../dto/api-response.dto';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -27,14 +32,23 @@ export class ResponseInterceptor implements NestInterceptor {
 
         // If data is null or undefined, return a simple success response
         if (data === null || data === undefined) {
-          return new SuccessResponse('Operation completed successfully', undefined, path);
+          return new SuccessResponse(
+            'Operation completed successfully',
+            undefined,
+            path,
+          );
         }
 
         // Handle different response types based on HTTP status
         const statusCode = response.statusCode;
 
         // Handle paginated responses
-        if (data && typeof data === 'object' && 'items' in data && 'meta' in data) {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'items' in data &&
+          'meta' in data
+        ) {
           const { items, meta } = data;
           return new PaginatedResponse(
             'Data retrieved successfully',
@@ -53,14 +67,18 @@ export class ResponseInterceptor implements NestInterceptor {
 
         // Handle created responses (201)
         if (statusCode === HttpStatus.CREATED) {
-          return new CreatedResponse('Resource created successfully', data, path);
+          return new CreatedResponse(
+            'Resource created successfully',
+            data,
+            path,
+          );
         }
 
         // Handle success responses (200)
         if (statusCode === HttpStatus.OK) {
           // Determine appropriate message based on the data structure
           let message = 'Operation completed successfully';
-          
+
           if (data && typeof data === 'object') {
             if ('message' in data) {
               message = data.message;
@@ -80,8 +98,12 @@ export class ResponseInterceptor implements NestInterceptor {
         }
 
         // Default success response
-        return new SuccessResponse('Operation completed successfully', data, path);
+        return new SuccessResponse(
+          'Operation completed successfully',
+          data,
+          path,
+        );
       }),
     );
   }
-} 
+}

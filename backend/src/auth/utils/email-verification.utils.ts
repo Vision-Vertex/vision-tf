@@ -21,4 +21,4 @@ export function validateEmailVerificationToken(token: string): boolean {
   // Check if token contains only valid hex characters (a-f, A-F, 0-9)
   const hexRegex = /^[a-fA-F0-9]+$/;
   return hexRegex.test(token);
-} 
+}

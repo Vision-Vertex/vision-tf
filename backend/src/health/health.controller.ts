@@ -1,9 +1,9 @@
 import { Controller, Get, Version } from '@nestjs/common';
-import { 
-  HealthCheck, 
-  HealthCheckService, 
+import {
+  HealthCheck,
+  HealthCheckService,
   HealthIndicatorResult,
-  HealthCheckResult 
+  HealthCheckResult,
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,7 +21,8 @@ export class HealthController {
   @HealthCheck()
   @ApiOperation({
     summary: 'Health check',
-    description: 'Performs a comprehensive health check of the application and its dependencies.',
+    description:
+      'Performs a comprehensive health check of the application and its dependencies.',
   })
   @ApiResponse({
     status: 200,
@@ -82,11 +83,11 @@ export class HealthController {
               status: 'up',
             },
           };
-        } catch (error) {
+        } catch (error: any) {
           return {
             database: {
               status: 'down',
-              message: error.message,
+              message: error?.message || 'Unknown database error',
             },
           };
         }
@@ -95,10 +96,10 @@ export class HealthController {
       async (): Promise<HealthIndicatorResult> => {
         const used = process.memoryUsage();
         const memoryUsage = {
-          rss: `${Math.round(used.rss / 1024 / 1024 * 100) / 100} MB`,
-          heapTotal: `${Math.round(used.heapTotal / 1024 / 1024 * 100) / 100} MB`,
-          heapUsed: `${Math.round(used.heapUsed / 1024 / 1024 * 100) / 100} MB`,
-          external: `${Math.round(used.external / 1024 / 1024 * 100) / 100} MB`,
+          rss: `${Math.round((used.rss / 1024 / 1024) * 100) / 100} MB`,
+          heapTotal: `${Math.round((used.heapTotal / 1024 / 1024) * 100) / 100} MB`,
+          heapUsed: `${Math.round((used.heapUsed / 1024 / 1024) * 100) / 100} MB`,
+          external: `${Math.round((used.external / 1024 / 1024) * 100) / 100} MB`,
         };
 
         // Consider unhealthy if heap usage is too high (>95% of total) - adjusted for development
@@ -152,4 +153,4 @@ export class HealthController {
       path: '/health/ping',
     };
   }
-} 
+}

@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, CallHandler, HttpStatus } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { ResponseInterceptor } from './response.interceptor';
-import { SuccessResponse, CreatedResponse, PaginatedResponse, BaseApiResponse } from '../dto/api-response.dto';
+import {
+  SuccessResponse,
+  CreatedResponse,
+  PaginatedResponse,
+  BaseApiResponse,
+} from '../dto/api-response.dto';
 
 describe('ResponseInterceptor', () => {
   let interceptor: ResponseInterceptor;
@@ -45,7 +50,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(existingResponse));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -64,7 +72,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(null));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -86,7 +97,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(undefined));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -106,7 +120,10 @@ describe('ResponseInterceptor', () => {
     it('should handle paginated responses with items and meta', (done) => {
       // Arrange
       const paginatedData = {
-        items: [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }],
+        items: [
+          { id: 1, name: 'Item 1' },
+          { id: 2, name: 'Item 2' },
+        ],
         meta: {
           page: 1,
           limit: 10,
@@ -119,7 +136,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(paginatedData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -146,7 +166,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(paginatedData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -169,11 +192,15 @@ describe('ResponseInterceptor', () => {
     it('should handle created responses (201 status)', (done) => {
       // Arrange
       const createdData = { id: 1, name: 'Created Item' };
-      mockExecutionContext.switchToHttp().getResponse().statusCode = HttpStatus.CREATED;
+      mockExecutionContext.switchToHttp().getResponse().statusCode =
+        HttpStatus.CREATED;
       mockCallHandler.handle.mockReturnValue(of(createdData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -200,7 +227,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(dataWithMessage));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -227,7 +257,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(authData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -246,11 +279,17 @@ describe('ResponseInterceptor', () => {
 
     it('should handle success responses with array data', (done) => {
       // Arrange
-      const arrayData = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }];
+      const arrayData = [
+        { id: 1, name: 'Item 1' },
+        { id: 2, name: 'Item 2' },
+      ];
       mockCallHandler.handle.mockReturnValue(of(arrayData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -273,7 +312,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(emptyObject));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -296,7 +338,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(regularData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -319,7 +364,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(primitiveData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -342,7 +390,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(numberData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -365,7 +416,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(booleanData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -388,7 +442,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(emptyArray));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -426,7 +483,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(nestedData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -453,7 +513,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(dataWithFunction));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -473,11 +536,15 @@ describe('ResponseInterceptor', () => {
     it('should handle different URL paths', (done) => {
       // Arrange
       const testData = { id: 1, name: 'Test' };
-      mockExecutionContext.switchToHttp().getRequest().url = '/api/v1/users/123';
+      mockExecutionContext.switchToHttp().getRequest().url =
+        '/api/v1/users/123';
       mockCallHandler.handle.mockReturnValue(of(testData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -492,11 +559,15 @@ describe('ResponseInterceptor', () => {
     it('should handle different HTTP status codes', (done) => {
       // Arrange
       const testData = { id: 1, name: 'Test' };
-      mockExecutionContext.switchToHttp().getResponse().statusCode = HttpStatus.ACCEPTED;
+      mockExecutionContext.switchToHttp().getResponse().statusCode =
+        HttpStatus.ACCEPTED;
       mockCallHandler.handle.mockReturnValue(of(testData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -517,7 +588,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(throwError(() => error));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -533,11 +607,18 @@ describe('ResponseInterceptor', () => {
 
     it('should preserve existing BaseApiResponse path if already set', (done) => {
       // Arrange
-      const existingResponse = new SuccessResponse('Existing response', null, '/existing/path');
+      const existingResponse = new SuccessResponse(
+        'Existing response',
+        null,
+        '/existing/path',
+      );
       mockCallHandler.handle.mockReturnValue(of(existingResponse));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -569,7 +650,10 @@ describe('ResponseInterceptor', () => {
       mockCallHandler.handle.mockReturnValue(of(complexPaginatedData));
 
       // Act
-      const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
+      const result$ = interceptor.intercept(
+        mockExecutionContext,
+        mockCallHandler,
+      );
 
       // Assert
       result$.subscribe({
@@ -585,4 +669,4 @@ describe('ResponseInterceptor', () => {
       });
     });
   });
-}); 
+});

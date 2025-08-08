@@ -17,4 +17,4 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
   ],
   exports: [],
 })
-export class CommonModule {} 
+export class CommonModule {}

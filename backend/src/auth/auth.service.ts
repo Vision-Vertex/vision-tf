@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from '../email/email.service';
@@ -16,18 +22,21 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangeUserRoleDto } from './dto/change-user-role.dto';
 import { SessionService } from './session.service';
 import { AuditService } from '../audit/audit.service';
-import { SuspiciousActivityService, LoginContext } from '../security/suspicious-activity.service';
+import {
+  SuspiciousActivityService,
+  LoginContext,
+} from '../security/suspicious-activity.service';
 import { SuspiciousActivityStatus } from '@prisma/client';
-import { 
-  SuccessResponse, 
-  CreatedResponse, 
-  AuthResponse, 
-  TwoFactorSetupResponse, 
-  UserProfile, 
+import {
+  SuccessResponse,
+  CreatedResponse,
+  AuthResponse,
+  TwoFactorSetupResponse,
+  UserProfile,
   SessionInfo,
   AuditLogEntry,
   SuspiciousActivity,
-  LoginPattern
+  LoginPattern,
 } from '../common/dto/api-response.dto';
 
 @Injectable()
@@ -48,7 +57,8 @@ export class AuthService {
         OR: [{ email: dto.email }, { username: dto.username }],
       },
     });
-    if (existing) throw new ConflictException('Email or username already taken');
+    if (existing)
+      throw new ConflictException('Email or username already taken');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
@@ -63,7 +73,10 @@ export class AuthService {
     });
 
     // Send verification email
-    await this.emailService.sendEmailVerification(user.email, emailVerificationToken);
+    await this.emailService.sendEmailVerification(
+      user.email,
+      emailVerificationToken,
+    );
 
     // Log user registration
     await this.auditService.logUserRegistered(user.id, user.email);
@@ -75,7 +88,7 @@ export class AuthService {
         email: user.email,
         username: user.username,
         isEmailVerified: user.isEmailVerified,
-      }
+      },
     );
   }
 
@@ -88,7 +101,9 @@ export class AuthService {
 
     // Check if account is locked
     if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      throw new ForbiddenException('Account is temporarily locked. Please try again later.');
+      throw new ForbiddenException(
+        'Account is temporarily locked. Please try again later.',
+      );
     }
 
     const valid = await bcrypt.compare(dto.password, user.password);
@@ -96,7 +111,7 @@ export class AuthService {
       // Increment failed login attempts
       const failedAttempts = user.failedLoginAttempts + 1;
       const updateData: any = { failedLoginAttempts: failedAttempts };
-      
+
       // Lock account after 5 failed attempts for 15 minutes
       if (failedAttempts >= 5) {
         updateData.accountLockedUntil = new Date(Date.now() + 15 * 60 * 1000);
@@ -110,7 +125,12 @@ export class AuthService {
       });
 
       // Log failed login attempt
-      await this.auditService.logLoginFailed(dto.email, ipAddress, userAgent, 'Invalid password');
+      await this.auditService.logLoginFailed(
+        dto.email,
+        ipAddress,
+        userAgent,
+        'Invalid password',
+      );
 
       // Detect brute force attacks
       await this.suspiciousActivityService.detectBruteForceAttack(ipAddress);
@@ -142,10 +162,10 @@ export class AuthService {
 
     // Create session
     const session = await this.sessionService.createSession(
-      user.id, 
-      userAgent, 
-      ipAddress, 
-      dto.rememberMe || false
+      user.id,
+      userAgent,
+      ipAddress,
+      dto.rememberMe || false,
     );
 
     // Analyze login activity for suspicious behavior
@@ -156,11 +176,22 @@ export class AuthService {
       timestamp: new Date(),
     };
 
-    const riskAssessment = await this.suspiciousActivityService.analyzeLoginActivity(loginContext);
+    const riskAssessment =
+      await this.suspiciousActivityService.analyzeLoginActivity(loginContext);
 
     // Log successful login
-    await this.auditService.logUserLogin(user.id, ipAddress, userAgent, session.sessionToken);
-    await this.auditService.logSessionCreated(user.id, session.sessionToken, ipAddress, userAgent);
+    await this.auditService.logUserLogin(
+      user.id,
+      ipAddress,
+      userAgent,
+      session.sessionToken,
+    );
+    await this.auditService.logSessionCreated(
+      user.id,
+      session.sessionToken,
+      ipAddress,
+      userAgent,
+    );
 
     // Detect and log suspicious activity if risk is significant
     if (riskAssessment.riskScore >= 20) {
@@ -177,7 +208,12 @@ export class AuthService {
       );
     }
 
-    return await this._signToken(user.id, user.email, user.role, session.sessionToken);
+    return await this._signToken(
+      user.id,
+      user.email,
+      user.role,
+      session.sessionToken,
+    );
   }
 
   async verify2fa(dto: Verify2faDto, ipAddress?: string, userAgent?: string) {
@@ -191,19 +227,34 @@ export class AuthService {
 
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) {
-      await this.auditService.logLoginFailed(dto.email, ipAddress, userAgent, 'Invalid password in 2FA verification');
+      await this.auditService.logLoginFailed(
+        dto.email,
+        ipAddress,
+        userAgent,
+        'Invalid password in 2FA verification',
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isValidToken = this.twoFactorService.verifyToken(dto.code, user.twoFactorSecret!);
+    const isValidToken = this.twoFactorService.verifyToken(
+      dto.code,
+      user.twoFactorSecret!,
+    );
     if (!isValidToken) {
       // Check backup codes
-      const isValidBackupCode = this.twoFactorService.verifyBackupCode(dto.code, user.twoFactorBackupCodes);
+      const isValidBackupCode = this.twoFactorService.verifyBackupCode(
+        dto.code,
+        user.twoFactorBackupCodes,
+      );
       if (!isValidBackupCode) {
-        await this.auditService.logTwoFactorVerificationFailed(user.id, ipAddress, userAgent);
+        await this.auditService.logTwoFactorVerificationFailed(
+          user.id,
+          ipAddress,
+          userAgent,
+        );
         throw new UnauthorizedException('Invalid 2FA code');
       }
-      
+
       // Update backup codes after use
       await this.prisma.user.update({
         where: { id: user.id },
@@ -213,10 +264,10 @@ export class AuthService {
 
     // Create session after successful 2FA verification
     const session = await this.sessionService.createSession(
-      user.id, 
-      userAgent || 'Unknown', 
-      ipAddress || 'Unknown', 
-      false // Default to false for 2FA, can be enhanced later
+      user.id,
+      userAgent || 'Unknown',
+      ipAddress || 'Unknown',
+      false, // Default to false for 2FA, can be enhanced later
     );
 
     // Analyze login activity for suspicious behavior
@@ -227,11 +278,22 @@ export class AuthService {
       timestamp: new Date(),
     };
 
-    const riskAssessment = await this.suspiciousActivityService.analyzeLoginActivity(loginContext);
+    const riskAssessment =
+      await this.suspiciousActivityService.analyzeLoginActivity(loginContext);
 
     // Log successful 2FA verification and login
-    await this.auditService.logUserLogin(user.id, ipAddress, userAgent, session.sessionToken);
-    await this.auditService.logSessionCreated(user.id, session.sessionToken, ipAddress, userAgent);
+    await this.auditService.logUserLogin(
+      user.id,
+      ipAddress,
+      userAgent,
+      session.sessionToken,
+    );
+    await this.auditService.logSessionCreated(
+      user.id,
+      session.sessionToken,
+      ipAddress,
+      userAgent,
+    );
 
     // Detect and log suspicious activity if risk is significant
     if (riskAssessment.riskScore >= 20) {
@@ -248,7 +310,12 @@ export class AuthService {
       );
     }
 
-    return await this._signToken(user.id, user.email, user.role, session.sessionToken);
+    return await this._signToken(
+      user.id,
+      user.email,
+      user.role,
+      session.sessionToken,
+    );
   }
 
   async verifyEmail(dto: VerifyEmailDto) {
@@ -275,14 +342,20 @@ export class AuthService {
     return new SuccessResponse('Email verified successfully');
   }
 
-  async forgotPassword(dto: ForgotPasswordDto, ipAddress?: string, userAgent?: string) {
+  async forgotPassword(
+    dto: ForgotPasswordDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
     if (!user) {
       // Don't reveal if email exists or not
-      return new SuccessResponse('If the email exists, a password reset link has been sent.');
+      return new SuccessResponse(
+        'If the email exists, a password reset link has been sent.',
+      );
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -299,12 +372,22 @@ export class AuthService {
     await this.emailService.sendPasswordReset(user.email, resetToken);
 
     // Log password reset request
-    await this.auditService.logPasswordResetRequested(user.email, ipAddress, userAgent);
+    await this.auditService.logPasswordResetRequested(
+      user.email,
+      ipAddress,
+      userAgent,
+    );
 
-    return new SuccessResponse('If the email exists, a password reset link has been sent.');
+    return new SuccessResponse(
+      'If the email exists, a password reset link has been sent.',
+    );
   }
 
-  async resetPassword(dto: ResetPasswordDto, ipAddress?: string, userAgent?: string) {
+  async resetPassword(
+    dto: ResetPasswordDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const user = await this.prisma.user.findFirst({
       where: {
         passwordResetToken: dto.token,
@@ -330,7 +413,11 @@ export class AuthService {
     });
 
     // Log password reset completion
-    await this.auditService.logPasswordResetCompleted(user.id, ipAddress, userAgent);
+    await this.auditService.logPasswordResetCompleted(
+      user.id,
+      ipAddress,
+      userAgent,
+    );
 
     return new SuccessResponse('Password reset successfully');
   }
@@ -342,7 +429,9 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User not found');
 
-    const { secret, qrCodeUrl } = this.twoFactorService.generateSecret(user.email);
+    const { secret, qrCodeUrl } = this.twoFactorService.generateSecret(
+      user.email,
+    );
     const qrCode = await this.twoFactorService.generateQRCode(qrCodeUrl);
     const backupCodes = this.twoFactorService.generateBackupCodes();
 
@@ -359,16 +448,25 @@ export class AuthService {
     // Log 2FA setup
     await this.auditService.logTwoFactorSetup(userId, ipAddress, userAgent);
 
-    return new SuccessResponse('2FA setup initiated. Check your email for details.', {
-      secret,
-      qrCodeUrl,
-      qrCode,
-      backupCodes,
-      instructions: 'Scan the QR code with your authenticator app or enter the secret manually.',
-    });
+    return new SuccessResponse(
+      '2FA setup initiated. Check your email for details.',
+      {
+        secret,
+        qrCodeUrl,
+        qrCode,
+        backupCodes,
+        instructions:
+          'Scan the QR code with your authenticator app or enter the secret manually.',
+      },
+    );
   }
 
-  async enable2fa(userId: string, dto: Enable2faDto, ipAddress?: string, userAgent?: string) {
+  async enable2fa(
+    userId: string,
+    dto: Enable2faDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -377,10 +475,17 @@ export class AuthService {
       throw new BadRequestException('2FA not set up');
     }
 
-    const isValid = this.twoFactorService.verifyToken(dto.code, user.twoFactorSecret);
+    const isValid = this.twoFactorService.verifyToken(
+      dto.code,
+      user.twoFactorSecret,
+    );
     if (!isValid) {
       // Log failed 2FA verification
-      await this.auditService.logTwoFactorVerificationFailed(userId, ipAddress, userAgent);
+      await this.auditService.logTwoFactorVerificationFailed(
+        userId,
+        ipAddress,
+        userAgent,
+      );
       throw new BadRequestException('Invalid 2FA code');
     }
 
@@ -392,7 +497,9 @@ export class AuthService {
     // Log 2FA enabled
     await this.auditService.logTwoFactorEnabled(userId, ipAddress, userAgent);
 
-    return new SuccessResponse('Two-factor authentication enabled successfully');
+    return new SuccessResponse(
+      'Two-factor authentication enabled successfully',
+    );
   }
 
   async disable2fa(userId: string, dto: Enable2faDto) {
@@ -404,7 +511,10 @@ export class AuthService {
       throw new BadRequestException('2FA not enabled');
     }
 
-    const isValid = this.twoFactorService.verifyToken(dto.code, user.twoFactorSecret!);
+    const isValid = this.twoFactorService.verifyToken(
+      dto.code,
+      user.twoFactorSecret!,
+    );
     if (!isValid) {
       throw new BadRequestException('Invalid 2FA code');
     }
@@ -418,7 +528,9 @@ export class AuthService {
       },
     });
 
-    return new SuccessResponse('Two-factor authentication disabled successfully');
+    return new SuccessResponse(
+      'Two-factor authentication disabled successfully',
+    );
   }
 
   async refreshToken(dto: RefreshTokenDto) {
@@ -427,14 +539,28 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!refreshToken || refreshToken.isRevoked || refreshToken.expiresAt < new Date()) {
+    if (
+      !refreshToken ||
+      refreshToken.isRevoked ||
+      refreshToken.expiresAt < new Date()
+    ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    return await this._signToken(refreshToken.user.id, refreshToken.user.email, refreshToken.user.role);
+    return await this._signToken(
+      refreshToken.user.id,
+      refreshToken.user.email,
+      refreshToken.user.role,
+    );
   }
 
-  async logout(userId: string, refreshToken?: string, sessionToken?: string, ipAddress?: string, userAgent?: string) {
+  async logout(
+    userId: string,
+    refreshToken?: string,
+    sessionToken?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     if (refreshToken) {
       // Use updateMany to avoid error if token doesn't exist
       await this.prisma.refreshToken.updateMany({
@@ -446,14 +572,28 @@ export class AuthService {
     if (sessionToken) {
       // Terminate specific session
       await this.sessionService.terminateSession(sessionToken);
-      await this.auditService.logUserLogout(userId, ipAddress, userAgent, sessionToken);
-      await this.auditService.logSessionTerminated(userId, sessionToken, ipAddress, userAgent);
+      await this.auditService.logUserLogout(
+        userId,
+        ipAddress,
+        userAgent,
+        sessionToken,
+      );
+      await this.auditService.logSessionTerminated(
+        userId,
+        sessionToken,
+        ipAddress,
+        userAgent,
+      );
       return new SuccessResponse('Logged out from this device successfully');
     } else {
       // Terminate all user sessions
       await this.sessionService.terminateAllUserSessions(userId);
       await this.auditService.logUserLogout(userId, ipAddress, userAgent);
-      await this.auditService.logAllSessionsTerminated(userId, ipAddress, userAgent);
+      await this.auditService.logAllSessionsTerminated(
+        userId,
+        ipAddress,
+        userAgent,
+      );
       return new SuccessResponse('Logged out from all devices successfully');
     }
   }
@@ -490,7 +630,12 @@ export class AuthService {
     return new SuccessResponse('Account deactivated successfully');
   }
 
-  private async _signToken(userId: string, email: string, role: string, sessionToken?: string) {
+  private async _signToken(
+    userId: string,
+    email: string,
+    role: string,
+    sessionToken?: string,
+  ) {
     const payload = { sub: userId, email, role, sessionToken };
     const accessToken = this.jwt.sign(payload);
     const refreshToken = crypto.randomBytes(40).toString('hex');
@@ -505,9 +650,9 @@ export class AuthService {
     });
 
     return new SuccessResponse('Authentication successful', {
-      accessToken, 
+      accessToken,
       refreshToken,
-      sessionToken // Include session token for client-side session management
+      sessionToken, // Include session token for client-side session management
     });
   }
 
@@ -532,7 +677,12 @@ export class AuthService {
     return new SuccessResponse('Users retrieved successfully', { users });
   }
 
-  async changeUserRole(dto: ChangeUserRoleDto, adminUserId: string, ipAddress?: string, userAgent?: string) {
+  async changeUserRole(
+    dto: ChangeUserRoleDto,
+    adminUserId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
     });
@@ -549,12 +699,24 @@ export class AuthService {
     });
 
     // Log role change
-    await this.auditService.logUserRoleChanged(adminUserId, dto.userId, oldRole, dto.newRole, ipAddress, userAgent);
+    await this.auditService.logUserRoleChanged(
+      adminUserId,
+      dto.userId,
+      oldRole,
+      dto.newRole,
+      ipAddress,
+      userAgent,
+    );
 
     return new SuccessResponse(`User role changed to ${dto.newRole}`);
   }
 
-  async deactivateUserByAdmin(userId: string, adminUserId: string, ipAddress?: string, userAgent?: string) {
+  async deactivateUserByAdmin(
+    userId: string,
+    adminUserId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -583,7 +745,12 @@ export class AuthService {
     });
 
     // Log user deactivation
-    await this.auditService.logUserDeactivated(adminUserId, userId, ipAddress, userAgent);
+    await this.auditService.logUserDeactivated(
+      adminUserId,
+      userId,
+      ipAddress,
+      userAgent,
+    );
 
     return new SuccessResponse('User deactivated successfully');
   }
@@ -642,7 +809,7 @@ export class AuthService {
   async getUserSessions(userId: string) {
     const sessions = await this.sessionService.getUserSessions(userId);
     return new SuccessResponse('User sessions retrieved successfully', {
-      sessions: sessions.map(session => ({
+      sessions: sessions.map((session) => ({
         id: session.id,
         deviceName: session.deviceName,
         userAgent: session.userAgent,
@@ -650,8 +817,8 @@ export class AuthService {
         lastActivityAt: session.lastActivityAt,
         createdAt: session.createdAt,
         expiresAt: session.expiresAt,
-        rememberMe: session.rememberMe
-      }))
+        rememberMe: session.rememberMe,
+      })),
     });
   }
 
@@ -661,8 +828,8 @@ export class AuthService {
       where: {
         sessionToken,
         userId,
-        isActive: true
-      }
+        isActive: true,
+      },
     });
 
     if (!session) {
@@ -680,8 +847,14 @@ export class AuthService {
 
   // Audit query methods
   async getAuditLogs(query: any) {
-    const { eventType, eventCategory, severity, limit = 50, offset = 0 } = query;
-    
+    const {
+      eventType,
+      eventCategory,
+      severity,
+      limit = 50,
+      offset = 0,
+    } = query;
+
     const where: any = {};
     if (eventType) where.eventType = eventType;
     if (eventCategory) where.eventCategory = eventCategory;
@@ -708,19 +881,39 @@ export class AuthService {
 
   async getRecentAuditLogs(limit: number = 100) {
     const logs = await this.auditService.getRecentAuditLogs(limit);
-    return new SuccessResponse('Recent audit logs retrieved successfully', { logs });
+    return new SuccessResponse('Recent audit logs retrieved successfully', {
+      logs,
+    });
   }
 
-  async getUserAuditLogs(userId: string, limit: number = 50, offset: number = 0) {
-    const logs = await this.auditService.getUserAuditLogs(userId, limit, offset);
-    return new SuccessResponse('User audit logs retrieved successfully', { logs });
+  async getUserAuditLogs(
+    userId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
+    const logs = await this.auditService.getUserAuditLogs(
+      userId,
+      limit,
+      offset,
+    );
+    return new SuccessResponse('User audit logs retrieved successfully', {
+      logs,
+    });
   }
 
   // Suspicious activity methods
   async getSuspiciousActivities(query: any) {
     const { userId, status, limit = 50, offset = 0 } = query;
-    const activities = await this.suspiciousActivityService.getSuspiciousActivities(userId, status, limit, offset);
-    return new SuccessResponse('Suspicious activities retrieved successfully', { activities });
+    const activities =
+      await this.suspiciousActivityService.getSuspiciousActivities(
+        userId,
+        status,
+        limit,
+        offset,
+      );
+    return new SuccessResponse('Suspicious activities retrieved successfully', {
+      activities,
+    });
   }
 
   async updateSuspiciousActivityStatus(
@@ -729,22 +922,33 @@ export class AuthService {
     adminUserId: string,
     reviewNotes?: string,
   ) {
-    const result = await this.suspiciousActivityService.updateSuspiciousActivityStatus(
-      activityId,
-      status,
-      adminUserId,
-      reviewNotes,
+    const result =
+      await this.suspiciousActivityService.updateSuspiciousActivityStatus(
+        activityId,
+        status,
+        adminUserId,
+        reviewNotes,
+      );
+    return new SuccessResponse(
+      'Suspicious activity status updated successfully',
+      result,
     );
-    return new SuccessResponse('Suspicious activity status updated successfully', result);
   }
 
   async getUserLoginPatterns(userId: string) {
-    const patterns = await this.suspiciousActivityService.getUserLoginPatterns(userId);
-    return new SuccessResponse('User login patterns retrieved successfully', { patterns });
+    const patterns =
+      await this.suspiciousActivityService.getUserLoginPatterns(userId);
+    return new SuccessResponse('User login patterns retrieved successfully', {
+      patterns,
+    });
   }
 
   async detectPasswordSprayAttack() {
-    const result = await this.suspiciousActivityService.detectPasswordSprayAttack();
-    return new SuccessResponse('Password spray attack detection completed', result);
+    const result =
+      await this.suspiciousActivityService.detectPasswordSprayAttack();
+    return new SuccessResponse(
+      'Password spray attack detection completed',
+      result,
+    );
   }
 }

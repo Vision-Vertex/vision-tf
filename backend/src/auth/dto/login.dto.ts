@@ -18,7 +18,8 @@ export class LoginDto {
   password: string;
 
   @ApiPropertyOptional({
-    description: 'Enable "Remember me" functionality for extended session duration',
+    description:
+      'Enable "Remember me" functionality for extended session duration',
     example: false,
     default: false,
   })

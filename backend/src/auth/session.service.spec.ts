@@ -37,7 +37,7 @@ describe('SessionService', () => {
 
     service = module.get<SessionService>(SessionService);
     prismaService = module.get(PrismaService);
-    
+
     // Get mocked crypto
     mockCrypto = require('crypto');
   });
@@ -48,7 +48,8 @@ describe('SessionService', () => {
 
   describe('createSession', () => {
     const userId = 'user-123';
-    const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+    const userAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
     const ipAddress = '192.168.1.1';
 
     it('should create a session successfully', async () => {
@@ -116,7 +117,12 @@ describe('SessionService', () => {
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
-      const result = await service.createSession(userId, userAgent, ipAddress, true);
+      const result = await service.createSession(
+        userId,
+        userAgent,
+        ipAddress,
+        true,
+      );
 
       // Assert
       expect(prismaService.session.create).toHaveBeenCalledWith({
@@ -138,9 +144,9 @@ describe('SessionService', () => {
       prismaService.session.count.mockResolvedValue(3);
 
       // Act & Assert
-      await expect(service.createSession(userId, userAgent, ipAddress)).rejects.toThrow(
-        BadRequestException
-      );
+      await expect(
+        service.createSession(userId, userAgent, ipAddress),
+      ).rejects.toThrow(BadRequestException);
       expect(prismaService.session.count).toHaveBeenCalledWith({
         where: {
           userId,
@@ -154,7 +160,8 @@ describe('SessionService', () => {
     it('should handle different user agents for device detection', async () => {
       // Arrange
       const sessionToken = 'session-token-789';
-      const iphoneUserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)';
+      const iphoneUserAgent =
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)';
       const mockSession = {
         id: 'session-3',
         sessionToken,
@@ -168,7 +175,11 @@ describe('SessionService', () => {
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
-      const result = await service.createSession(userId, iphoneUserAgent, ipAddress);
+      const result = await service.createSession(
+        userId,
+        iphoneUserAgent,
+        ipAddress,
+      );
 
       // Assert
       expect(prismaService.session.create).toHaveBeenCalledWith({
@@ -191,11 +202,17 @@ describe('SessionService', () => {
       };
 
       prismaService.session.count.mockResolvedValue(0);
-      mockCrypto.randomBytes.mockReturnValue(Buffer.from('session-token-unknown'));
+      mockCrypto.randomBytes.mockReturnValue(
+        Buffer.from('session-token-unknown'),
+      );
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
-      const result = await service.createSession(userId, unknownUserAgent, ipAddress);
+      const result = await service.createSession(
+        userId,
+        unknownUserAgent,
+        ipAddress,
+      );
 
       // Assert
       expect(prismaService.session.create).toHaveBeenCalledWith({
@@ -210,13 +227,13 @@ describe('SessionService', () => {
     it('should terminate a session successfully', async () => {
       // Arrange
       const sessionToken = 'session-token-123';
-      prismaService.session.update.mockResolvedValue({} as any);
+      prismaService.session.updateMany.mockResolvedValue({ count: 1 } as any);
 
       // Act
       await service.terminateSession(sessionToken);
 
       // Assert
-      expect(prismaService.session.update).toHaveBeenCalledWith({
+      expect(prismaService.session.updateMany).toHaveBeenCalledWith({
         where: { sessionToken },
         data: { isActive: false },
       });
@@ -225,13 +242,13 @@ describe('SessionService', () => {
     it('should handle non-existent session token', async () => {
       // Arrange
       const sessionToken = 'non-existent-token';
-      prismaService.session.update.mockResolvedValue({} as any);
+      prismaService.session.updateMany.mockResolvedValue({ count: 0 } as any);
 
       // Act
       await service.terminateSession(sessionToken);
 
       // Assert
-      expect(prismaService.session.update).toHaveBeenCalledWith({
+      expect(prismaService.session.updateMany).toHaveBeenCalledWith({
         where: { sessionToken },
         data: { isActive: false },
       });
@@ -495,7 +512,8 @@ describe('SessionService', () => {
   describe('device name parsing', () => {
     it('should parse iPhone user agent', async () => {
       // Arrange
-      const userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)';
+      const userAgent =
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)';
       const sessionToken = 'session-token-iphone';
       const mockSession = {
         id: 'session-iphone',
@@ -505,7 +523,9 @@ describe('SessionService', () => {
       };
 
       prismaService.session.count.mockResolvedValue(0);
-      mockCrypto.randomBytes.mockReturnValue(Buffer.from('session-token-iphone'));
+      mockCrypto.randomBytes.mockReturnValue(
+        Buffer.from('session-token-iphone'),
+      );
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
@@ -557,7 +577,9 @@ describe('SessionService', () => {
       };
 
       prismaService.session.count.mockResolvedValue(0);
-      mockCrypto.randomBytes.mockReturnValue(Buffer.from('session-token-android'));
+      mockCrypto.randomBytes.mockReturnValue(
+        Buffer.from('session-token-android'),
+      );
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
@@ -573,7 +595,8 @@ describe('SessionService', () => {
 
     it('should parse Firefox user agent', async () => {
       // Arrange
-      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
+      const userAgent =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
       const sessionToken = 'session-token-firefox';
       const mockSession = {
         id: 'session-firefox',
@@ -583,7 +606,9 @@ describe('SessionService', () => {
       };
 
       prismaService.session.count.mockResolvedValue(0);
-      mockCrypto.randomBytes.mockReturnValue(Buffer.from('session-token-firefox'));
+      mockCrypto.randomBytes.mockReturnValue(
+        Buffer.from('session-token-firefox'),
+      );
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
@@ -599,7 +624,8 @@ describe('SessionService', () => {
 
     it('should parse Safari user agent', async () => {
       // Arrange
-      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15';
+      const userAgent =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15';
       const sessionToken = 'session-token-safari';
       const mockSession = {
         id: 'session-safari',
@@ -609,7 +635,9 @@ describe('SessionService', () => {
       };
 
       prismaService.session.count.mockResolvedValue(0);
-      mockCrypto.randomBytes.mockReturnValue(Buffer.from('session-token-safari'));
+      mockCrypto.randomBytes.mockReturnValue(
+        Buffer.from('session-token-safari'),
+      );
       prismaService.session.create.mockResolvedValue(mockSession as any);
 
       // Act
@@ -625,7 +653,8 @@ describe('SessionService', () => {
 
     it('should parse Edge user agent', async () => {
       // Arrange
-      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59';
+      const userAgent =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59';
       const sessionToken = 'session-token-edge';
       const mockSession = {
         id: 'session-edge',
@@ -649,4 +678,4 @@ describe('SessionService', () => {
       });
     });
   });
-}); 
+});

@@ -415,8 +415,8 @@ describe('LoginDto', () => {
 
       // Assert
       expect(errors).toHaveLength(2);
-      expect(errors.some(e => e.property === 'email')).toBe(true);
-      expect(errors.some(e => e.property === 'rememberMe')).toBe(true);
+      expect(errors.some((e) => e.property === 'email')).toBe(true);
+      expect(errors.some((e) => e.property === 'rememberMe')).toBe(true);
     });
   });
 
@@ -505,4 +505,4 @@ describe('LoginDto', () => {
       expect(errors[0].property).toBe('email');
     });
   });
-}); 
+});

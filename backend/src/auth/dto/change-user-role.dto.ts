@@ -19,4 +19,4 @@ export class ChangeUserRoleDto {
   })
   @IsEnum(UserRole)
   newRole: UserRole;
-} 
+}

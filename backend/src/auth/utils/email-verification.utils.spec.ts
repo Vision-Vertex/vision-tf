@@ -1,4 +1,7 @@
-import { generateEmailVerificationToken, validateEmailVerificationToken } from './email-verification.utils';
+import {
+  generateEmailVerificationToken,
+  validateEmailVerificationToken,
+} from './email-verification.utils';
 import { randomBytes, createHash } from 'crypto';
 
 // Mock crypto module
@@ -8,7 +11,9 @@ jest.mock('crypto', () => ({
 }));
 
 describe('Email Verification Utils', () => {
-  const mockRandomBytes = randomBytes as jest.MockedFunction<typeof randomBytes>;
+  const mockRandomBytes = randomBytes as jest.MockedFunction<
+    typeof randomBytes
+  >;
   const mockCreateHash = createHash as jest.MockedFunction<typeof createHash>;
 
   beforeEach(() => {
@@ -195,7 +200,9 @@ describe('Email Verification Utils', () => {
       validTokens.forEach((token, index) => {
         const result = validateEmailVerificationToken(token);
         if (!result) {
-          console.log(`Token ${index} failed: "${token}" (length: ${token.length})`);
+          console.log(
+            `Token ${index} failed: "${token}" (length: ${token.length})`,
+          );
         }
         expect(result).toBe(true);
       });
@@ -203,9 +210,30 @@ describe('Email Verification Utils', () => {
 
     it('should return false for token with invalid hex characters', () => {
       // Test various invalid characters
-      const invalidChars = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-      
-      invalidChars.forEach(char => {
+      const invalidChars = [
+        'g',
+        'h',
+        'i',
+        'j',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+        's',
+        't',
+        'u',
+        'v',
+        'w',
+        'x',
+        'y',
+        'z',
+      ];
+
+      invalidChars.forEach((char) => {
         const invalidToken = 'a'.repeat(63) + char;
         const result = validateEmailVerificationToken(invalidToken);
         expect(result).toBe(false);
@@ -267,4 +295,4 @@ describe('Email Verification Utils', () => {
       expect(result).toBe(false);
     });
   });
-}); 
+});

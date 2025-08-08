@@ -24,10 +24,10 @@ export class AuthGuardWithRoles extends JwtAuthGuard {
     }
 
     // Then check roles
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (!requiredRoles) {
       return true;
@@ -36,4 +36,4 @@ export class AuthGuardWithRoles extends JwtAuthGuard {
     const { user } = context.switchToHttp().getRequest();
     return requiredRoles.some((role) => user.role === role);
   }
-} 
+}

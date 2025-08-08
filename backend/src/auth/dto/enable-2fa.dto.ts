@@ -10,4 +10,4 @@ export class Enable2faDto {
   })
   @IsString()
   code: string;
-} 
+}

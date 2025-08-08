@@ -5,22 +5,29 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SessionService {
   constructor(private prisma: PrismaService) {}
 
-  async createSession(userId: string, userAgent: string, ipAddress: string, rememberMe: boolean = false) {
+  async createSession(
+    userId: string,
+    userAgent: string,
+    ipAddress: string,
+    rememberMe: boolean = false,
+  ) {
     // Check if user already has 3 active sessions
     const activeSessions = await this.prisma.session.count({
       where: {
         userId,
         isActive: true,
-        expiresAt: { gt: new Date() }
-      }
+        expiresAt: { gt: new Date() },
+      },
     });
 
     if (activeSessions >= 3) {
-      throw new BadRequestException('Maximum 3 active sessions allowed. Please logout from another device first.');
+      throw new BadRequestException(
+        'Maximum 3 active sessions allowed. Please logout from another device first.',
+      );
     }
 
     const sessionToken = this.generateSessionToken();
-    const expiresAt = rememberMe 
+    const expiresAt = rememberMe
       ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
       : new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
@@ -34,8 +41,8 @@ export class SessionService {
         userAgent,
         ipAddress,
         deviceName,
-        rememberMe
-      }
+        rememberMe,
+      },
     });
 
     return session;
@@ -44,14 +51,14 @@ export class SessionService {
   async terminateSession(sessionToken: string) {
     await this.prisma.session.updateMany({
       where: { sessionToken },
-      data: { isActive: false }
+      data: { isActive: false },
     });
   }
 
   async terminateAllUserSessions(userId: string) {
     await this.prisma.session.updateMany({
       where: { userId, isActive: true },
-      data: { isActive: false }
+      data: { isActive: false },
     });
   }
 
@@ -60,23 +67,23 @@ export class SessionService {
       where: {
         userId,
         isActive: true,
-        expiresAt: { gt: new Date() }
+        expiresAt: { gt: new Date() },
       },
-      orderBy: { lastActivityAt: 'desc' }
+      orderBy: { lastActivityAt: 'desc' },
     });
   }
 
   async updateSessionActivity(sessionToken: string) {
     await this.prisma.session.update({
       where: { sessionToken },
-      data: { lastActivityAt: new Date() }
+      data: { lastActivityAt: new Date() },
     });
   }
 
   async validateSession(sessionToken: string) {
     const session = await this.prisma.session.findUnique({
       where: { sessionToken },
-      include: { user: true }
+      include: { user: true },
     });
 
     if (!session || !session.isActive || session.expiresAt < new Date()) {
@@ -92,9 +99,9 @@ export class SessionService {
     await this.prisma.session.updateMany({
       where: {
         expiresAt: { lt: new Date() },
-        isActive: true
+        isActive: true,
       },
-      data: { isActive: false }
+      data: { isActive: false },
     });
   }
 
@@ -113,4 +120,4 @@ export class SessionService {
     if (userAgent.includes('Edge')) return 'Edge Browser';
     return 'Unknown Device';
   }
-} 
+}

@@ -8,4 +8,4 @@ import { AuditModule } from '../audit/audit.module';
   providers: [SuspiciousActivityService],
   exports: [SuspiciousActivityService],
 })
-export class SecurityModule {} 
+export class SecurityModule {}

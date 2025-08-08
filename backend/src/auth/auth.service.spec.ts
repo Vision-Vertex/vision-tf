@@ -224,7 +224,10 @@ describe('AuthService', () => {
       // Assert
       expect(prismaService.user.findFirst).toHaveBeenCalledWith({
         where: {
-          OR: [{ email: mockSignupDto.email }, { username: mockSignupDto.username }],
+          OR: [
+            { email: mockSignupDto.email },
+            { username: mockSignupDto.username },
+          ],
         },
       });
       expect(prismaService.user.create).toHaveBeenCalledWith({
@@ -238,11 +241,11 @@ describe('AuthService', () => {
       });
       expect(emailService.sendEmailVerification).toHaveBeenCalledWith(
         mockUser.email,
-        expect.any(String)
+        expect.any(String),
       );
       expect(auditService.logUserRegistered).toHaveBeenCalledWith(
         mockUser.id,
-        mockUser.email
+        mockUser.email,
       );
       expect(result.success).toBe(true);
       expect(result.message).toContain('User registered successfully');
@@ -253,7 +256,9 @@ describe('AuthService', () => {
       prismaService.user.findFirst.mockResolvedValue(mockUser);
 
       // Act & Assert
-      await expect(service.signup(mockSignupDto)).rejects.toThrow('Email or username already taken');
+      await expect(service.signup(mockSignupDto)).rejects.toThrow(
+        'Email or username already taken',
+      );
     });
 
     it('should throw error if username already exists', async () => {
@@ -261,7 +266,9 @@ describe('AuthService', () => {
       prismaService.user.findFirst.mockResolvedValue(mockUser);
 
       // Act & Assert
-      await expect(service.signup(mockSignupDto)).rejects.toThrow('Email or username already taken');
+      await expect(service.signup(mockSignupDto)).rejects.toThrow(
+        'Email or username already taken',
+      );
     });
   });
 
@@ -276,21 +283,33 @@ describe('AuthService', () => {
       prismaService.user.findUnique.mockResolvedValue(userWithVerifiedEmail);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       jwtService.sign.mockReturnValue(accessToken);
-      prismaService.refreshToken.create.mockResolvedValue({ token: refreshToken } as any);
+      prismaService.refreshToken.create.mockResolvedValue({
+        token: refreshToken,
+      } as any);
       sessionService.createSession.mockResolvedValue({ sessionToken } as any);
       auditService.logUserLogin.mockResolvedValue(undefined);
       auditService.logSessionCreated.mockResolvedValue(undefined);
       suspiciousActivityService.logLoginAttempt.mockResolvedValue(undefined);
-      suspiciousActivityService.analyzeLoginActivity.mockResolvedValue({ riskScore: 5, riskLevel: 'LOW' });
+      suspiciousActivityService.analyzeLoginActivity.mockResolvedValue({
+        riskScore: 5,
+        riskLevel: 'LOW',
+      });
 
       // Act
-      const result = await service.login(mockLoginDto, 'user-agent', '127.0.0.1');
+      const result = await service.login(
+        mockLoginDto,
+        'user-agent',
+        '127.0.0.1',
+      );
 
       // Assert
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: mockLoginDto.email },
       });
-      expect(bcrypt.compare).toHaveBeenCalledWith(mockLoginDto.password, userWithVerifiedEmail.password);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        mockLoginDto.password,
+        userWithVerifiedEmail.password,
+      );
       expect(jwtService.sign).toHaveBeenCalled();
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('accessToken');
@@ -299,12 +318,20 @@ describe('AuthService', () => {
 
     it('should return 2FA requirement when 2FA is enabled', async () => {
       // Arrange
-      const userWith2FA = { ...mockUser, isEmailVerified: true, twoFactorEnabled: true };
+      const userWith2FA = {
+        ...mockUser,
+        isEmailVerified: true,
+        twoFactorEnabled: true,
+      };
       prismaService.user.findUnique.mockResolvedValue(userWith2FA);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       // Act
-      const result = await service.login(mockLoginDto, 'user-agent', '127.0.0.1');
+      const result = await service.login(
+        mockLoginDto,
+        'user-agent',
+        '127.0.0.1',
+      );
 
       // Assert
       expect(result.success).toBe(true);
@@ -318,7 +345,9 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       // Act & Assert
-      await expect(service.login(mockLoginDto, 'user-agent', '127.0.0.1')).rejects.toThrow('Invalid credentials');
+      await expect(
+        service.login(mockLoginDto, 'user-agent', '127.0.0.1'),
+      ).rejects.toThrow('Invalid credentials');
     });
 
     it('should successfully login with unverified email (no email verification check)', async () => {
@@ -326,15 +355,24 @@ describe('AuthService', () => {
       prismaService.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       jwtService.sign.mockReturnValue(accessToken);
-      prismaService.refreshToken.create.mockResolvedValue({ token: refreshToken } as any);
+      prismaService.refreshToken.create.mockResolvedValue({
+        token: refreshToken,
+      } as any);
       sessionService.createSession.mockResolvedValue({ sessionToken } as any);
       auditService.logUserLogin.mockResolvedValue(undefined);
       auditService.logSessionCreated.mockResolvedValue(undefined);
       suspiciousActivityService.logLoginAttempt.mockResolvedValue(undefined);
-      suspiciousActivityService.analyzeLoginActivity.mockResolvedValue({ riskScore: 5, riskLevel: 'LOW' });
+      suspiciousActivityService.analyzeLoginActivity.mockResolvedValue({
+        riskScore: 5,
+        riskLevel: 'LOW',
+      });
 
       // Act
-      const result = await service.login(mockLoginDto, 'user-agent', '127.0.0.1');
+      const result = await service.login(
+        mockLoginDto,
+        'user-agent',
+        '127.0.0.1',
+      );
 
       // Assert
       expect(result.success).toBe(true);
@@ -344,14 +382,18 @@ describe('AuthService', () => {
 
     it('should throw error for locked account', async () => {
       // Arrange
-      const lockedUser = { 
-        ...mockUser, 
-        accountLockedUntil: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
+      const lockedUser = {
+        ...mockUser,
+        accountLockedUntil: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
       };
       prismaService.user.findUnique.mockResolvedValue(lockedUser);
 
       // Act & Assert
-      await expect(service.login(mockLoginDto, 'user-agent', '127.0.0.1')).rejects.toThrow('Account is temporarily locked. Please try again later.');
+      await expect(
+        service.login(mockLoginDto, 'user-agent', '127.0.0.1'),
+      ).rejects.toThrow(
+        'Account is temporarily locked. Please try again later.',
+      );
     });
   });
 
@@ -362,12 +404,31 @@ describe('AuthService', () => {
 
     it('should successfully verify 2FA and complete login', async () => {
       // Arrange
-      const userWith2FA = { ...mockUser, twoFactorEnabled: true, twoFactorSecret: 'secret123' };
+      const userWith2FA = {
+        ...mockUser,
+        twoFactorEnabled: true,
+        twoFactorSecret: 'secret123',
+      };
       prismaService.user.findUnique.mockResolvedValue(userWith2FA);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       twoFactorService.verifyToken.mockReturnValue(true);
       jwtService.sign.mockReturnValue(accessToken);
       auditService.logUserLogin.mockResolvedValue(undefined);
+      auditService.logSessionCreated.mockResolvedValue(undefined);
+      
+      const mockSession = {
+        id: 'session-id',
+        sessionToken: 'session-token-123',
+        userId: 'user-id',
+        isActive: true,
+        expiresAt: new Date(Date.now() + 3600000),
+      };
+      sessionService.createSession.mockResolvedValue(mockSession as any);
+      suspiciousActivityService.analyzeLoginActivity.mockResolvedValue({
+        riskScore: 0,
+        riskFactors: [],
+        confidence: 0,
+      });
 
       const verify2faDto = {
         email: 'test@example.com',
@@ -376,18 +437,36 @@ describe('AuthService', () => {
       };
 
       // Act
-      const result = await service.verify2fa(verify2faDto, '127.0.0.1', 'user-agent');
+      const result = await service.verify2fa(
+        verify2faDto,
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
-      expect(twoFactorService.verifyToken).toHaveBeenCalledWith('123456', 'secret123');
+      expect(twoFactorService.verifyToken).toHaveBeenCalledWith(
+        '123456',
+        'secret123',
+      );
+      expect(sessionService.createSession).toHaveBeenCalledWith(
+        'user-123',
+        'user-agent',
+        '127.0.0.1',
+        false
+      );
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('accessToken');
       expect(result.data).toHaveProperty('refreshToken');
+      expect(result.data).toHaveProperty('sessionToken');
     });
 
     it('should throw error for invalid 2FA code', async () => {
       // Arrange
-      const userWith2FA = { ...mockUser, twoFactorEnabled: true, twoFactorSecret: 'secret123' };
+      const userWith2FA = {
+        ...mockUser,
+        twoFactorEnabled: true,
+        twoFactorSecret: 'secret123',
+      };
       prismaService.user.findUnique.mockResolvedValue(userWith2FA);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       twoFactorService.verifyToken.mockReturnValue(false);
@@ -401,16 +480,24 @@ describe('AuthService', () => {
       };
 
       // Act & Assert
-      await expect(service.verify2fa(verify2faDto, '127.0.0.1', 'user-agent')).rejects.toThrow('Invalid 2FA code');
+      await expect(
+        service.verify2fa(verify2faDto, '127.0.0.1', 'user-agent'),
+      ).rejects.toThrow('Invalid 2FA code');
     });
   });
 
   describe('verifyEmail', () => {
     it('should successfully verify email', async () => {
       // Arrange
-      const userWithToken = { ...mockUser, emailVerificationToken: 'valid-token' };
+      const userWithToken = {
+        ...mockUser,
+        emailVerificationToken: 'valid-token',
+      };
       prismaService.user.findFirst.mockResolvedValue(userWithToken);
-      prismaService.user.update.mockResolvedValue({ ...userWithToken, isEmailVerified: true });
+      prismaService.user.update.mockResolvedValue({
+        ...userWithToken,
+        isEmailVerified: true,
+      });
 
       const verifyEmailDto = { token: 'valid-token' };
 
@@ -443,7 +530,9 @@ describe('AuthService', () => {
       const verifyEmailDto = { token: 'invalid-token' };
 
       // Act & Assert
-      await expect(service.verifyEmail(verifyEmailDto)).rejects.toThrow('Invalid or expired verification token');
+      await expect(service.verifyEmail(verifyEmailDto)).rejects.toThrow(
+        'Invalid or expired verification token',
+      );
     });
   });
 
@@ -455,10 +544,16 @@ describe('AuthService', () => {
       emailService.sendPasswordResetEmail.mockResolvedValue(undefined);
       auditService.logPasswordResetRequested.mockResolvedValue(undefined);
 
-      const forgotPasswordDto: ForgotPasswordDto = { email: 'test@example.com' };
+      const forgotPasswordDto: ForgotPasswordDto = {
+        email: 'test@example.com',
+      };
 
       // Act
-      const result = await service.forgotPassword(forgotPasswordDto, '127.0.0.1', 'user-agent');
+      const result = await service.forgotPassword(
+        forgotPasswordDto,
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
@@ -473,35 +568,48 @@ describe('AuthService', () => {
       });
       expect(emailService.sendPasswordReset).toHaveBeenCalledWith(
         mockUser.email,
-        expect.any(String)
+        expect.any(String),
       );
       expect(auditService.logPasswordResetRequested).toHaveBeenCalledWith(
         mockUser.email,
         '127.0.0.1',
-        'user-agent'
+        'user-agent',
       );
       expect(result.success).toBe(true);
-      expect(result.message).toContain('If the email exists, a password reset link has been sent');
+      expect(result.message).toContain(
+        'If the email exists, a password reset link has been sent',
+      );
     });
 
     it('should not throw error for non-existent user (security)', async () => {
       // Arrange
       prismaService.user.findUnique.mockResolvedValue(null);
 
-      const forgotPasswordDto: ForgotPasswordDto = { email: 'nonexistent@example.com' };
+      const forgotPasswordDto: ForgotPasswordDto = {
+        email: 'nonexistent@example.com',
+      };
 
       // Act & Assert
-      const result = await service.forgotPassword(forgotPasswordDto, '127.0.0.1', 'user-agent');
+      const result = await service.forgotPassword(
+        forgotPasswordDto,
+        '127.0.0.1',
+        'user-agent',
+      );
       expect(result.success).toBe(true);
-      expect(result.message).toContain('If the email exists, a password reset link has been sent');
+      expect(result.message).toContain(
+        'If the email exists, a password reset link has been sent',
+      );
     });
   });
 
   describe('resetPassword', () => {
     it('should successfully reset password with valid token', async () => {
       // Arrange
-      const userWithResetToken = { ...mockUser, passwordResetToken: 'valid-token' };
-      
+      const userWithResetToken = {
+        ...mockUser,
+        passwordResetToken: 'valid-token',
+      };
+
       prismaService.user.findFirst.mockResolvedValue(userWithResetToken);
       (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
       prismaService.user.update.mockResolvedValue(userWithResetToken);
@@ -513,7 +621,11 @@ describe('AuthService', () => {
       };
 
       // Act
-      const result = await service.resetPassword(resetPasswordDto, '127.0.0.1', 'user-agent');
+      const result = await service.resetPassword(
+        resetPasswordDto,
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
       expect(prismaService.user.findFirst).toHaveBeenCalledWith({
@@ -536,7 +648,7 @@ describe('AuthService', () => {
       expect(auditService.logPasswordResetCompleted).toHaveBeenCalledWith(
         userWithResetToken.id,
         '127.0.0.1',
-        'user-agent'
+        'user-agent',
       );
       expect(result.success).toBe(true);
       expect(result.message).toContain('Password reset successfully');
@@ -552,7 +664,9 @@ describe('AuthService', () => {
       };
 
       // Act & Assert
-      await expect(service.resetPassword(resetPasswordDto, '127.0.0.1', 'user-agent')).rejects.toThrow('Invalid or expired reset token');
+      await expect(
+        service.resetPassword(resetPasswordDto, '127.0.0.1', 'user-agent'),
+      ).rejects.toThrow('Invalid or expired reset token');
     });
   });
 
@@ -565,18 +679,29 @@ describe('AuthService', () => {
         qrCodeUrl: 'test-qr-url',
       });
       twoFactorService.generateQRCode.mockResolvedValue('test-qr-code');
-      twoFactorService.generateBackupCodes.mockReturnValue(['backup1', 'backup2']);
+      twoFactorService.generateBackupCodes.mockReturnValue([
+        'backup1',
+        'backup2',
+      ]);
       prismaService.user.update.mockResolvedValue(mockUser);
 
       // Act
-      const result = await service.setup2fa('user-123', '127.0.0.1', 'user-agent');
+      const result = await service.setup2fa(
+        'user-123',
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-123' },
       });
-      expect(twoFactorService.generateSecret).toHaveBeenCalledWith(mockUser.email);
-      expect(twoFactorService.generateQRCode).toHaveBeenCalledWith('test-qr-url');
+      expect(twoFactorService.generateSecret).toHaveBeenCalledWith(
+        mockUser.email,
+      );
+      expect(twoFactorService.generateQRCode).toHaveBeenCalledWith(
+        'test-qr-url',
+      );
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('qrCode');
       expect(result.data).toHaveProperty('secret');
@@ -589,19 +714,30 @@ describe('AuthService', () => {
       const userWithSecret = { ...mockUser, twoFactorSecret: 'test-secret' };
       prismaService.user.findUnique.mockResolvedValue(userWithSecret);
       twoFactorService.verifyToken.mockReturnValue(true);
-      prismaService.user.update.mockResolvedValue({ ...userWithSecret, twoFactorEnabled: true });
+      prismaService.user.update.mockResolvedValue({
+        ...userWithSecret,
+        twoFactorEnabled: true,
+      });
       auditService.logTwoFactorEnabled.mockResolvedValue(undefined);
 
       const enable2faDto: Enable2faDto = { code: '123456' };
 
       // Act
-      const result = await service.enable2fa('user-123', enable2faDto, '127.0.0.1', 'user-agent');
+      const result = await service.enable2fa(
+        'user-123',
+        enable2faDto,
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-123' },
       });
-      expect(twoFactorService.verifyToken).toHaveBeenCalledWith('123456', 'test-secret');
+      expect(twoFactorService.verifyToken).toHaveBeenCalledWith(
+        '123456',
+        'test-secret',
+      );
       expect(prismaService.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
         data: { twoFactorEnabled: true },
@@ -609,10 +745,12 @@ describe('AuthService', () => {
       expect(auditService.logTwoFactorEnabled).toHaveBeenCalledWith(
         'user-123',
         '127.0.0.1',
-        'user-agent'
+        'user-agent',
       );
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Two-factor authentication enabled successfully');
+      expect(result.message).toContain(
+        'Two-factor authentication enabled successfully',
+      );
     });
 
     it('should throw error for invalid 2FA code', async () => {
@@ -624,17 +762,26 @@ describe('AuthService', () => {
       const enable2faDto: Enable2faDto = { code: '123456' };
 
       // Act & Assert
-      await expect(service.enable2fa('user-123', enable2faDto, '127.0.0.1', 'user-agent')).rejects.toThrow('Invalid 2FA code');
+      await expect(
+        service.enable2fa('user-123', enable2faDto, '127.0.0.1', 'user-agent'),
+      ).rejects.toThrow('Invalid 2FA code');
     });
   });
 
   describe('disable2fa', () => {
     it('should disable 2FA with valid code', async () => {
       // Arrange
-      const userWith2FA = { ...mockUser, twoFactorEnabled: true, twoFactorSecret: 'test-secret' };
+      const userWith2FA = {
+        ...mockUser,
+        twoFactorEnabled: true,
+        twoFactorSecret: 'test-secret',
+      };
       prismaService.user.findUnique.mockResolvedValue(userWith2FA);
       twoFactorService.verifyToken.mockReturnValue(true);
-      prismaService.user.update.mockResolvedValue({ ...userWith2FA, twoFactorEnabled: false });
+      prismaService.user.update.mockResolvedValue({
+        ...userWith2FA,
+        twoFactorEnabled: false,
+      });
       auditService.logTwoFactorDisabled.mockResolvedValue(undefined);
 
       const enable2faDto: Enable2faDto = { code: '123456' };
@@ -646,7 +793,10 @@ describe('AuthService', () => {
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-123' },
       });
-      expect(twoFactorService.verifyToken).toHaveBeenCalledWith('123456', 'test-secret');
+      expect(twoFactorService.verifyToken).toHaveBeenCalledWith(
+        '123456',
+        'test-secret',
+      );
       expect(prismaService.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
         data: {
@@ -657,7 +807,9 @@ describe('AuthService', () => {
       });
       // Note: disable2fa method doesn't call audit service in the actual implementation
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Two-factor authentication disabled successfully');
+      expect(result.message).toContain(
+        'Two-factor authentication disabled successfully',
+      );
     });
   });
 
@@ -676,7 +828,9 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       };
 
-      prismaService.refreshToken.findUnique.mockResolvedValue(mockRefreshToken as any);
+      prismaService.refreshToken.findUnique.mockResolvedValue(
+        mockRefreshToken as any,
+      );
       jwtService.sign.mockReturnValue('new-access-token');
 
       const refreshTokenDto = { refreshToken: 'valid-refresh-token' };
@@ -694,7 +848,7 @@ describe('AuthService', () => {
           sub: 'user-123',
           email: 'test@example.com',
           role: UserRole.CLIENT,
-        })
+        }),
       );
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('accessToken');
@@ -707,7 +861,9 @@ describe('AuthService', () => {
       const refreshTokenDto = { refreshToken: 'invalid-refresh-token' };
 
       // Act & Assert
-      await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow('Invalid refresh token');
+      await expect(service.refreshToken(refreshTokenDto)).rejects.toThrow(
+        'Invalid refresh token',
+      );
     });
   });
 
@@ -719,14 +875,32 @@ describe('AuthService', () => {
       auditService.logAllSessionsTerminated.mockResolvedValue(undefined);
 
       // Act
-      const result = await service.logout('user-123', undefined, undefined, '127.0.0.1', 'user-agent');
+      const result = await service.logout(
+        'user-123',
+        undefined,
+        undefined,
+        '127.0.0.1',
+        'user-agent',
+      );
 
       // Assert
-      expect(sessionService.terminateAllUserSessions).toHaveBeenCalledWith('user-123');
-      expect(auditService.logUserLogout).toHaveBeenCalledWith('user-123', '127.0.0.1', 'user-agent');
-      expect(auditService.logAllSessionsTerminated).toHaveBeenCalledWith('user-123', '127.0.0.1', 'user-agent');
+      expect(sessionService.terminateAllUserSessions).toHaveBeenCalledWith(
+        'user-123',
+      );
+      expect(auditService.logUserLogout).toHaveBeenCalledWith(
+        'user-123',
+        '127.0.0.1',
+        'user-agent',
+      );
+      expect(auditService.logAllSessionsTerminated).toHaveBeenCalledWith(
+        'user-123',
+        '127.0.0.1',
+        'user-agent',
+      );
       expect(result.success).toBe(true);
-      expect(result.message).toContain('Logged out from all devices successfully');
+      expect(result.message).toContain(
+        'Logged out from all devices successfully',
+      );
     });
   });
 });

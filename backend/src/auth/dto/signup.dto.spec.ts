@@ -49,10 +49,10 @@ describe('SignupDto', () => {
 
       // Assert
       expect(errors).toHaveLength(4);
-      expect(errors.some(e => e.property === 'lastname')).toBe(true);
-      expect(errors.some(e => e.property === 'username')).toBe(true);
-      expect(errors.some(e => e.property === 'email')).toBe(true);
-      expect(errors.some(e => e.property === 'password')).toBe(true);
+      expect(errors.some((e) => e.property === 'lastname')).toBe(true);
+      expect(errors.some((e) => e.property === 'username')).toBe(true);
+      expect(errors.some((e) => e.property === 'email')).toBe(true);
+      expect(errors.some((e) => e.property === 'password')).toBe(true);
     });
 
     it('should fail validation with invalid email format', async () => {
@@ -439,11 +439,11 @@ describe('SignupDto', () => {
 
       // Assert
       expect(errors).toHaveLength(5);
-      expect(errors.some(e => e.property === 'firstname')).toBe(true);
-      expect(errors.some(e => e.property === 'lastname')).toBe(true);
-      expect(errors.some(e => e.property === 'username')).toBe(true);
-      expect(errors.some(e => e.property === 'email')).toBe(true);
-      expect(errors.some(e => e.property === 'password')).toBe(true);
+      expect(errors.some((e) => e.property === 'firstname')).toBe(true);
+      expect(errors.some((e) => e.property === 'lastname')).toBe(true);
+      expect(errors.some((e) => e.property === 'username')).toBe(true);
+      expect(errors.some((e) => e.property === 'email')).toBe(true);
+      expect(errors.some((e) => e.property === 'password')).toBe(true);
     });
 
     it('should handle whitespace-only values', async () => {
@@ -460,9 +460,9 @@ describe('SignupDto', () => {
 
       // Assert
       expect(errors).toHaveLength(3);
-      expect(errors.some(e => e.property === 'username')).toBe(true);
-      expect(errors.some(e => e.property === 'email')).toBe(true);
-      expect(errors.some(e => e.property === 'password')).toBe(true);
+      expect(errors.some((e) => e.property === 'username')).toBe(true);
+      expect(errors.some((e) => e.property === 'email')).toBe(true);
+      expect(errors.some((e) => e.property === 'password')).toBe(true);
     });
 
     it('should handle very long values', async () => {
@@ -573,4 +573,4 @@ describe('SignupDto', () => {
       expect(errors).toHaveLength(0);
     });
   });
-}); 
+});

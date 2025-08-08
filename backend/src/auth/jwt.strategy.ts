@@ -13,22 +13,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // Check if session token exists in payload
-    if (!payload.sessionToken) {
+    // Check if payload exists and has session token
+    if (!payload || !payload.sessionToken) {
       throw new UnauthorizedException('Session token missing from JWT payload');
     }
 
     // Validate session
-    const session = await this.sessionService.validateSession(payload.sessionToken);
+    const session = await this.sessionService.validateSession(
+      payload.sessionToken,
+    );
     if (!session) {
       throw new UnauthorizedException('Session is invalid or expired');
     }
 
-    return { 
-      userId: payload?.sub, 
-      email: payload?.email, 
+    return {
+      userId: payload?.sub,
+      email: payload?.email,
       role: payload?.role,
-      sessionToken: payload?.sessionToken
+      sessionToken: payload?.sessionToken,
     };
   }
 }
